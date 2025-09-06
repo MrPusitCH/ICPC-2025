@@ -115,7 +115,7 @@ flutter build apk
 2. Commit with clear messages
 3. Open a PR describing the change
 
-## 🎌 Anime Animations
+## 🎌 ICPC 2024 & 2025 collab
 
 <div align="center">
   <!-- Anime coding -->
