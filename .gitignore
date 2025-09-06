@@ -9,6 +9,7 @@ frontend/application_icpc/build/
 frontend/application_icpc/ios/Flutter/ephemeral/
 frontend/application_icpc/android/.gradle/
 frontend/application_icpc/.idea/
+frontend/application_icpc/lib/flutter/
 
 ### OS junk
 .DS_Store

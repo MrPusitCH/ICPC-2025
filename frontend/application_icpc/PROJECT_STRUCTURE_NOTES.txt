@@ -1,0 +1,230 @@
+
+---
+
+# 📄 PROJECT STRUCTURE NOTES - Neighbor (隣人) Flutter App
+
+\============================================================
+
+เอกสารนี้เป็นภาพรวมของไฟล์ Dart ทั้งหมดในโฟลเดอร์ **lib/**
+อธิบายหน้าที่และบทบาทของแต่ละไฟล์ในแอปชุมชนสำหรับผู้สูงอายุ
+
+---
+
+## 🔹 ไฟล์หลัก (Core)
+
+```
+File: lib/main.dart
+Purpose: จุดเริ่มต้นของแอป (Entry point) ใช้สำหรับ runApp() และกำหนด MaterialApp
+
+File: lib/theme/app_theme.dart
+Purpose: กำหนดธีมกลางของแอป เช่น สี ตัวอักษร และ Material 3 Theme
+
+File: lib/router/app_router.dart
+Purpose: จัดการ Navigation และ Route ของแอป (ไปยังหน้าต่าง ๆ)
+```
+
+---
+
+## 🔹 หน้าหลักและการนำทาง (Main Screens)
+
+```
+File: lib/screens/main_app_screen.dart
+Purpose: โครงหลักของแอป มี BottomNavigationBar สำหรับสลับไปมา 
+ระหว่าง Home, Community, Activity, Volunteer, Profile
+```
+
+---
+
+## 🔹 Home
+
+```
+File: lib/screens/home/home_screen.dart
+Purpose: หน้าหลัก Home แสดงแบนเนอร์ต้อนรับ เมนูลัด และการควบคุม home automation
+```
+
+---
+
+## 🔹 News
+
+```
+File: lib/screens/news/news_list_screen.dart
+Purpose: หน้ารวมข่าวชุมชน พร้อม tag แบ่งประเภท (Important, Caution, Notice)
+
+File: lib/screens/news/news_detail_screen.dart
+Purpose: หน้าข่าวรายละเอียด (ตอนนี้ยังเป็น Coming Soon)
+```
+
+---
+
+## 🔹 Community
+
+```
+File: lib/screens/community/community_feed_screen.dart
+Purpose: หน้าฟีดโพสต์จากเพื่อนบ้าน แสดงอัปเดต/โพสต์
+
+File: lib/screens/community/community_detail_screen.dart
+Purpose: หน้ารายละเอียดโพสต์ (Coming Soon)
+
+File: lib/screens/community/community_create_screen.dart
+Purpose: หน้าสร้างโพสต์ใหม่ (Coming Soon)
+```
+
+---
+
+## 🔹 Activity
+
+```
+File: lib/screens/activity/activity_list_screen.dart
+Purpose: หน้ารวมกิจกรรมชุมชน และปุ่มเข้าร่วม
+
+File: lib/screens/activity/activity_detail_screen.dart
+Purpose: หน้ารายละเอียดกิจกรรม (Coming Soon)
+
+File: lib/screens/activity/activity_create_screen.dart
+Purpose: หน้าสร้างกิจกรรมใหม่ (Coming Soon)
+```
+
+---
+
+## 🔹 Volunteer
+
+```
+File: lib/screens/volunteer/volunteer_list_screen.dart
+Purpose: หน้ารวมคำขอความช่วยเหลือจากชุมชน (มี search และ filter)
+
+File: lib/screens/volunteer/volunteer_detail_screen.dart
+Purpose: หน้ารายละเอียดคำขอความช่วยเหลือ มีปุ่ม "รับช่วย" และ "แชท"
+
+File: lib/screens/volunteer/volunteer_create_screen.dart
+Purpose: หน้าฟอร์มสร้างคำขอความช่วยเหลือใหม่
+```
+
+---
+
+## 🔹 Profile & Settings
+
+```
+File: lib/screens/profile/profile_screen.dart
+Purpose: หน้าโปรไฟล์ผู้ใช้ แสดงข้อมูลส่วนตัว โรคประจำตัว และการใช้ชีวิต
+
+File: lib/screens/profile/profile_edit_screen.dart
+Purpose: หน้าแก้ไขโปรไฟล์ (Coming Soon)
+
+File: lib/screens/settings/settings_screen.dart
+Purpose: หน้า Settings (Coming Soon)
+
+File: lib/screens/notifications/notifications_screen.dart
+Purpose: หน้าการแจ้งเตือน (Coming Soon)
+```
+
+---
+
+## 🔹 Models (ข้อมูล)
+
+```
+File: lib/models/news_item.dart
+Purpose: โครงสร้างข้อมูลข่าว (title, summary, tag)
+
+File: lib/models/community_post.dart
+Purpose: โครงสร้างข้อมูลโพสต์ชุมชน
+
+File: lib/models/activity_item.dart
+Purpose: โครงสร้างข้อมูลกิจกรรม (วันเวลา, ผู้เข้าร่วม)
+
+File: lib/models/volunteer_item.dart
+Purpose: โครงสร้างข้อมูลคำขอความช่วยเหลือ
+
+File: lib/models/volunteer.dart
+Purpose: โครงสร้างข้อมูล volunteer อีกแบบ (อาจซ้ำกับ volunteer_item.dart)
+
+File: lib/models/user_profile.dart
+Purpose: โครงสร้างข้อมูลผู้ใช้ เช่น โรคประจำตัว การใช้ชีวิต
+```
+
+---
+
+## 🔹 Services
+
+```
+File: lib/services/mock_data_service.dart
+Purpose: ให้ mock data สำหรับการทดสอบและพัฒนา
+
+File: lib/services/api_service.dart
+Purpose: Placeholder สำหรับเชื่อมต่อ API จริงในอนาคต
+```
+
+---
+
+## 🔹 Widgets (คอมโพเนนต์ย่อย)
+
+```
+File: lib/widgets/news/news_card.dart
+Purpose: การ์ดข่าว ใช้แสดงข่าวใน list
+
+File: lib/widgets/news/news_tag_chip.dart
+Purpose: ป้าย tag ของข่าว (important, caution, notice)
+
+File: lib/widgets/community/community_post_card.dart
+Purpose: การ์ดโพสต์ของชุมชน
+
+File: lib/widgets/activity/activity_card.dart
+Purpose: การ์ดกิจกรรมพร้อม join
+
+File: lib/widgets/volunteer/volunteer_card.dart
+Purpose: การ์ดคำขอความช่วยเหลือ
+
+File: lib/widgets/volunteer/volunteer_tag.dart
+Purpose: ป้าย volunteer สีเขียว
+
+File: lib/widgets/volunteer/avatar_name_row.dart
+Purpose: แถว avatar + ชื่อ + เวลาที่โพสต์
+
+File: lib/widgets/profile/profile_header.dart
+Purpose: ส่วนหัวโปรไฟล์ แสดง avatar + ข้อมูลหลัก
+
+File: lib/widgets/profile/profile_section_card.dart
+Purpose: การ์ด section โปรไฟล์ เช่น โรค, การใช้ชีวิต
+
+File: lib/widgets/common/primary_button.dart
+Purpose: ปุ่มหลัก มาตรฐาน ใช้ซ้ำได้ทั้งแอป
+
+File: lib/widgets/common/info_row.dart
+Purpose: แถวข้อมูล label : value
+
+File: lib/widgets/common/section_header.dart
+Purpose: หัวข้อ section
+
+File: lib/widgets/common/app_banner_carousel.dart
+Purpose: แบนเนอร์ carousel ที่มีรูปเลื่อนบน Home
+
+File: lib/widgets/common/menu_grid.dart
+Purpose: กริดเมนูลัดใน Home
+
+File: lib/widgets/common/automation_grid.dart
+Purpose: กริดสำหรับ home automation บน Home
+
+File: lib/widgets/common/bottom_nav_bar.dart
+Purpose: BottomNavigationBar แบบ custom
+```
+
+---
+
+## 🔹 SUMMARY (สรุป)
+
+โปรเจกต์ Flutter นี้ใช้โครงสร้างที่ **ชัดเจนและแยกเป็นสัดส่วน**
+
+* `main.dart` = จุดเริ่มต้น
+* `app_theme.dart` และ `app_router.dart` = จัดการธีมและการนำทาง
+* `screens/` = แต่ละหน้า (Home, News, Community, Activity, Volunteer, Profile)
+* `widgets/` = คอมโพเนนต์ย่อยที่นำกลับมาใช้ซ้ำได้
+* `models/` = โครงสร้างข้อมูล
+* `services/` = mock data และ API ในอนาคต
+
+💡 จุดเด่น:
+
+* ออกแบบเพื่อผู้สูงอายุ → ตัวอักษรใหญ่, สี contrast สูง, ปุ่มเข้าใจง่าย
+* ใช้ Material 3 เพื่อความสวยงามและความสม่ำเสมอ
+* โครงสร้างนี้ทำให้ dev ใหม่เข้าใจเร็วและดูแลต่อได้ง่าย
+
+---
+

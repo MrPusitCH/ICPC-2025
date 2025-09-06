@@ -1,0 +1,247 @@
+# 🏠 Neighbor (隣人) - Elderly-Friendly Community App
+
+<div align="center">
+
+![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)
+![Dart](https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white)
+![Material Design](https://img.shields.io/badge/Material%20Design-757575?style=for-the-badge&logo=material-design&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+
+*A compassionate community app designed specifically for elderly users*
+
+[📱 Features](#-features) • [🎨 Screenshots](#-screenshots) • [🚀 Getting Started](#-getting-started) • [📋 Project Structure](#-project-structure) • [🤝 Contributing](#-contributing)
+
+</div>
+
+---
+
+## 📖 About
+
+**Neighbor (隣人)** is a Flutter-based community application designed with elderly users in mind. The app provides a simple, accessible platform for community interaction, news sharing, activity coordination, and volunteer assistance.
+
+### 🎯 Mission
+To bridge the digital divide and create meaningful connections within elderly communities through technology that's both powerful and easy to use.
+
+---
+
+## ✨ Features
+
+### 🏠 **Home Dashboard**
+- Welcome banner with personalized greetings
+- Quick access menu grid
+- Home automation controls
+- Community highlights
+
+### 📰 **News & Announcements**
+- Community news with categorized tags
+- **Important** (Red) - Critical updates
+- **Caution** (Orange) - Safety alerts  
+- **Notice** (Green) - General information
+
+### 👥 **Community Feed**
+- Social posts from neighbors
+- Community updates and discussions
+- Easy sharing and interaction
+
+### 🎯 **Activities**
+- Community events and activities
+- Join functionality with capacity tracking
+- Date, time, and location details
+
+### 🤝 **Volunteer Network**
+- Help requests from community members
+- Volunteer opportunities
+- Reward system for assistance
+
+### 👤 **Profile Management**
+- Personal information with medical details
+- Living situation tracking
+- Icon-based health information display
+
+---
+
+## 🎨 Design Principles
+
+### 👴 **Elderly-Friendly Design**
+- **Large Text**: 16-24px font sizes for readability
+- **High Contrast**: Dark text on light backgrounds
+- **Rounded Corners**: 16-20px radius for modern feel
+- **Soft Shadows**: Subtle depth without harsh edges
+- **Intuitive Icons**: Clear, recognizable symbols
+
+### 🎨 **Material 3 Design System**
+- Modern Material Design components
+- Consistent color scheme (#1E88E5 primary blue)
+- Accessible color combinations
+- Responsive layouts
+
+---
+
+## 📱 Screenshots
+
+<div align="center">
+
+| Home Screen | News Feed | Community |
+|-------------|-----------|-----------|
+| ![Home](flutter_01.png) | 📰 News with tags | 👥 Social feed |
+
+| Activities | Volunteer | Profile |
+|------------|-----------|---------|
+| 🎯 Event listings | 🤝 Help requests | 👤 User profile |
+
+</div>
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Flutter SDK (3.0 or higher)
+- Dart SDK (3.0 or higher)
+- Android Studio / VS Code
+- Git
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/MrPusitCH/ICPC2025.git
+   cd ICPC2025/application_icpc
+   ```
+
+2. **Install dependencies**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Run the app**
+   ```bash
+   flutter run
+   ```
+
+### Platform Support
+- ✅ **Android** (API 21+)
+- ✅ **iOS** (iOS 11+)
+- ✅ **Web** (Chrome, Firefox, Safari)
+- ✅ **Windows** (Windows 10+)
+- ✅ **macOS** (macOS 10.14+)
+- ✅ **Linux** (Ubuntu 18.04+)
+
+---
+
+## 📋 Project Structure
+
+```
+lib/
+├── main.dart                 # App entry point
+├── theme/
+│   └── app_theme.dart       # Material 3 theme configuration
+├── router/
+│   └── app_router.dart      # Navigation and routing
+├── models/                  # Data models
+│   ├── user_profile.dart
+│   ├── news_item.dart
+│   ├── activity_item.dart
+│   └── volunteer_item.dart
+├── screens/                 # Feature screens
+│   ├── home/
+│   ├── news/
+│   ├── community/
+│   ├── activity/
+│   ├── volunteer/
+│   └── profile/
+├── widgets/                 # Reusable components
+│   ├── common/
+│   ├── news/
+│   ├── community/
+│   ├── activity/
+│   ├── volunteer/
+│   └── profile/
+└── services/
+    ├── mock_data_service.dart
+    └── api_service.dart
+```
+
+📖 **Detailed documentation**: See [PROJECT_STRUCTURE_NOTES.txt](PROJECT_STRUCTURE_NOTES.txt)
+
+---
+
+## 🛠️ Development
+
+### Code Style
+- Follow Dart/Flutter conventions
+- Use meaningful variable names
+- Comment complex logic
+- Maintain consistent formatting
+
+### Testing
+```bash
+# Run tests
+flutter test
+
+# Run with coverage
+flutter test --coverage
+```
+
+### Building
+```bash
+# Android APK
+flutter build apk
+
+# iOS
+flutter build ios
+
+# Web
+flutter build web
+```
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+### Contribution Guidelines
+- Follow the existing code style
+- Add tests for new features
+- Update documentation as needed
+- Ensure accessibility for elderly users
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Flutter Team** for the amazing framework
+- **Material Design** for the design system
+- **Community Contributors** for feedback and suggestions
+- **Elderly Users** for inspiring this project
+
+---
+
+## 📞 Contact
+
+**Project Maintainer**: [MrPusitCH](https://github.com/MrPusitCH)
+
+**Repository**: [https://github.com/MrPusitCH/ICPC2025](https://github.com/MrPusitCH/ICPC2025)
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the elderly community**
+
+[⬆ Back to Top](#-neighbor--隣人---elderly-friendly-community-app)
+
+</div>

@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  VOLUNTEER
+  ELDER
+  ORGANIZER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+model User {
+  user_id        Int       @id @default(autoincrement())
+  email          String    @unique
+  phone_number   String?   @unique
+  password_hash  String @db.VarChar(255)
+  role           UserRole  @default(USER)
+  status         UserStatus @default(ACTIVE)
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+  profile        UserProfile?
+  healthInfo     HealthInfo[]
+  emergencyContacts EmergencyContact[]
+  userInterests  UserInterest[]
+  availability   VolunteerAvailability[]
+  loginHistory   LoginHistory[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  profile_id        Int     @id @default(autoincrement())
+  user_id           Int     @unique
+  full_name         String
+  nickname          String?
+  profile_image_url String?
+  date_of_birth     DateTime?
+  gender            String?
+  address           String?
+  user              User    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model HealthInfo {
+  health_id  Int   @id @default(autoincrement())
+  user_id    Int
+  condition  String
+  user       User  @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("health_info")
+}
+
+model EmergencyContact {
+  contact_id   Int   @id @default(autoincrement())
+  user_id      Int
+  name         String
+  phone        String
+  relationship String?
+  user         User  @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("emergency_contacts")
+}
+
+model Interest {
+  interest_id Int    @id @default(autoincrement())
+  name        String @unique
+  users       UserInterest[]
+
+  @@map("interests")
+}
+
+model UserInterest {
+  user_id     Int
+  interest_id Int
+  user        User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  interest    Interest @relation(fields: [interest_id], references: [interest_id], onDelete: Cascade)
+
+  @@id([user_id, interest_id])
+  @@map("user_interests")
+}
+
+model VolunteerAvailability {
+  availability_id Int  @id @default(autoincrement())
+  user_id         Int
+  weekday         Int  // 0=Sunday .. 6=Saturday
+  start_time      String
+  end_time        String
+  user            User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("volunteer_availability")
+}
+
+model LoginHistory {
+  login_id    Int      @id @default(autoincrement())
+  user_id     Int
+  login_at    DateTime @default(now())
+  ip_address  String?
+  device_info String?
+  user        User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("login_history")
+}
