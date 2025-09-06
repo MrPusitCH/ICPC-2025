@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/profile/profile_header.dart';
 import '../../widgets/profile/profile_section_card.dart';
 import '../../services/profile_service.dart';
+import '../../services/auth_service.dart';
 import '../../models/user_profile.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -24,14 +25,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     try {
-      // TODO: Get actual user ID from authentication service
-      const int userId = 1; // Replace with actual user ID
+      // Get user ID from authentication service
+      print('ProfileScreen: Getting current user ID...');
+      final userId = await AuthService.getCurrentUserId();
+      print('ProfileScreen: Retrieved user ID: $userId');
+      
+      if (userId == null) {
+        print('ProfileScreen: No user ID found - user not logged in');
+        setState(() {
+          _error = 'User not logged in';
+          _isLoading = false;
+        });
+        return;
+      }
+      
+      print('ProfileScreen: Loading profile for user ID: $userId');
       final profile = await ProfileService.getUserProfile(userId);
+      print('ProfileScreen: Profile loaded successfully');
       setState(() {
         _userProfile = profile;
         _isLoading = false;
       });
     } catch (e) {
+      print('ProfileScreen: Error loading profile: $e');
       setState(() {
         _error = e.toString();
         _isLoading = false;

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../router/app_router.dart';
 import '../../services/profile_service.dart';
+import '../../services/auth_service.dart';
 import '../../models/user_profile.dart';
 
 class ProfileEditScreen extends StatefulWidget {
@@ -38,8 +39,18 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     });
 
     try {
-      // TODO: Get actual user ID from authentication service
-      const int userId = 1; // Replace with actual user ID
+      // Get user ID from authentication service
+      final userId = await AuthService.getCurrentUserId();
+      if (userId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('User not logged in'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      
       final profile = await ProfileService.getUserProfile(userId);
       
       _nameController.text = profile.name;
@@ -72,8 +83,17 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     });
 
     try {
-      // TODO: Get actual user ID from authentication service
-      const int userId = 1; // Replace with actual user ID
+      // Get user ID from authentication service
+      final userId = await AuthService.getCurrentUserId();
+      if (userId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('User not logged in'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
       
       final profile = UserProfile(
         userId: userId,

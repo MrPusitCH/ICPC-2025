@@ -5,14 +5,14 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Seeding database...');
 
-  // Create a test user
+  // Create a test user with ID 2
   const user = await prisma.user.upsert({
-    where: { email: 'test@example.com' },
+    where: { email: 'test2@example.com' },
     update: {},
     create: {
-      email: 'test@example.com',
-      phone_number: '+1234567890',
-      password_hash: 'hashed_password_here', // In real app, hash this properly
+      email: 'test2@example.com',
+      phone_number: '+1234567891',
+      password_hash: 'password123', // Simple password for demo
       role: 'USER',
       status: 'ACTIVE',
     },
@@ -69,7 +69,7 @@ async function main() {
     ],
   });
 
-  // Create interests
+  // Create interests (skip if they already exist)
   const interests = await prisma.interest.createMany({
     data: [
       { name: 'Reading' },
@@ -77,19 +77,50 @@ async function main() {
       { name: 'Cooking' },
       { name: 'Walking' },
     ],
+    skipDuplicates: true,
   });
 
-  // Create user interests
+  // Create user interests (skip if they already exist)
   const createdInterests = await prisma.interest.findMany();
   await prisma.userInterest.createMany({
     data: createdInterests.map(interest => ({
       user_id: user.user_id,
       interest_id: interest.interest_id,
     })),
+    skipDuplicates: true,
+  });
+
+  // Create another test user with different ID
+  const user2 = await prisma.user.upsert({
+    where: { email: 'admin@example.com' },
+    update: {},
+    create: {
+      email: 'admin@example.com',
+      phone_number: '+1234567892',
+      password_hash: 'password123',
+      role: 'ADMIN',
+      status: 'ACTIVE',
+    },
+  });
+
+  // Create user profile for second user
+  await prisma.userProfile.upsert({
+    where: { user_id: user2.user_id },
+    update: {},
+    create: {
+      user_id: user2.user_id,
+      full_name: 'Admin User',
+      nickname: 'Admin',
+      profile_image_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+      date_of_birth: new Date('1980-01-01'),
+      gender: 'Male',
+      address: 'Admin Street 123',
+    },
   });
 
   console.log('✅ Database seeded successfully!');
-  console.log(`👤 Created user: ${user.email}`);
+  console.log(`👤 Created user: ${user.email} (ID: ${user.user_id})`);
+  console.log(`👤 Created user: ${user2.email} (ID: ${user2.user_id})`);
 }
 
 main()

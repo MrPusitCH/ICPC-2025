@@ -32,24 +32,32 @@ class UserProfile {
 
   /// Create UserProfile from JSON
   factory UserProfile.fromJson(Map<String, dynamic> json) {
+    // Calculate age from date_of_birth if available
+    String age = '';
+    if (json['date_of_birth'] != null) {
+      final birthDate = DateTime.parse(json['date_of_birth']);
+      final now = DateTime.now();
+      age = (now.year - birthDate.year).toString();
+    }
+    
     return UserProfile(
-      userId: json['userId'] ?? 0,
-      name: json['name'] ?? '',
+      userId: json['user_id'] ?? json['userId'] ?? 0,
+      name: json['full_name'] ?? json['name'] ?? '',
       nickname: json['nickname'],
       gender: json['gender'] ?? '',
-      age: json['age'] ?? '',
+      age: age,
       address: json['address'] ?? '',
-      avatarUrl: json['avatarUrl'] ?? '',
-      diseases: (json['diseases'] as List<dynamic>?)
-          ?.map((item) => ProfileItem.fromJson(item))
+      avatarUrl: json['profile_image_url'] ?? json['avatarUrl'] ?? '',
+      diseases: (json['health_conditions'] as List<dynamic>?)
+          ?.map((item) => ProfileItem(text: item.toString(), icon: 'health_and_safety'))
           .toList() ?? [],
-      livingSituation: (json['livingSituation'] as List<dynamic>?)
+      livingSituation: (json['living_situation'] as List<dynamic>?)
           ?.map((item) => ProfileItem.fromJson(item))
           .toList() ?? [],
       interests: (json['interests'] as List<dynamic>?)
-          ?.map((item) => ProfileItem.fromJson(item))
+          ?.map((item) => ProfileItem(text: item.toString(), icon: 'favorite'))
           .toList(),
-      emergencyContacts: (json['emergencyContacts'] as List<dynamic>?)
+      emergencyContacts: (json['emergency_contacts'] as List<dynamic>?)
           ?.map((item) => EmergencyContact.fromJson(item))
           .toList(),
     );

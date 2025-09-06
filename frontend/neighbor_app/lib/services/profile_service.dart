@@ -11,7 +11,7 @@ class ProfileService {
   /// Get user profile from API
   static Future<UserProfile> getUserProfile(int userId) async {
     try {
-      final url = '$baseUrl/profile?userId=$userId';
+      final url = '$baseUrl/profile/$userId';
       print('ProfileService: Making request to $url');
       
       final response = await http.get(
@@ -40,34 +40,24 @@ class ProfileService {
   static Future<bool> updateUserProfile(int userId, UserProfile profile) async {
     try {
       final response = await http.put(
-        Uri.parse('$baseUrl/profile'),
+        Uri.parse('$baseUrl/profile/$userId'),
         headers: {
           'Content-Type': 'application/json',
         },
         body: json.encode({
-          'userId': userId,
-          'name': profile.name,
+          'user_id': userId,
+          'full_name': profile.name,
           'nickname': profile.nickname,
           'gender': profile.gender,
           'address': profile.address,
-          'avatarUrl': profile.avatarUrl,
-          'diseases': profile.diseases.map((d) => {
-            'text': d.text,
-            'icon': d.icon.toString(),
-          }).toList(),
-          'livingSituation': profile.livingSituation.map((l) => {
-            'text': l.text,
-            'icon': l.icon.toString(),
-          }).toList(),
-          'interests': profile.interests?.map((i) => {
-            'text': i.text,
-            'icon': i.icon.toString(),
-          }).toList() ?? [],
-          'emergencyContacts': profile.emergencyContacts?.map((e) => {
+          'profile_image_url': profile.avatarUrl,
+          'health_conditions': profile.diseases.map((d) => d.text).toList(),
+          'emergency_contacts': profile.emergencyContacts?.map((e) => {
             'name': e.name,
             'phone': e.phone,
             'relationship': e.relationship,
           }).toList() ?? [],
+          'interests': profile.interests?.map((i) => i.text).toList() ?? [],
         }),
       );
 
