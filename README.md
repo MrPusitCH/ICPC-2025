@@ -119,7 +119,7 @@ flutter build apk
 
 <div align="center">
   <!-- Anime coding -->
-  <img src="https://tenor.com/jpwybLxOXnZ.gif" width="500" alt="Anime Coding" />
+  <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExemx5MWV2eWVmZng5ZTI3Mjd1bTQ3cWthYXp0bndtYzgwYTM1YW9jMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/iMEOxEJP7CJBS/giphy.gif" width="1000" alt="Anime Coding" />
 
 </div>
 
