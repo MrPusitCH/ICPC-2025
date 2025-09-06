@@ -1,0 +1,109 @@
+[33ma81ef2e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: add backend and frontend projects; remove nested repos; ignore flutter SDK dir
+ .gitignore                                         |    1 [32m+[m
+ backend/.gitignore                                 |   43 [32m+[m
+ backend/API_SETUP.md                               |  140 [32m+[m
+ backend/README.md                                  |   72 [32m+[m
+ backend/env.example                                |   12 [32m+[m
+ backend/eslint.config.mjs                          |   25 [32m+[m
+ backend/next.config.ts                             |    7 [32m+[m
+ backend/package-lock.json                          | 6282 [32m++++++++++++++++++++[m
+ backend/package.json                               |   31 [32m+[m
+ .../migrations/20250904171350_init/migration.sql   |  110 [32m+[m
+ backend/prisma/migrations/migration_lock.toml      |    3 [32m+[m
+ backend/prisma/schema.prisma                       |  118 [32m+[m
+ backend/prisma/seed.ts                             |  102 [32m+[m
+ backend/public/file.svg                            |    1 [32m+[m
+ backend/public/globe.svg                           |    1 [32m+[m
+ backend/public/next.svg                            |    1 [32m+[m
+ backend/public/vercel.svg                          |    1 [32m+[m
+ backend/public/window.svg                          |    1 [32m+[m
+ backend/src/app/api/auth/login/route.ts            |   47 [32m+[m
+ backend/src/app/api/auth/logout/route.ts           |   16 [32m+[m
+ backend/src/app/api/auth/register/route.ts         |   48 [32m+[m
+ backend/src/app/api/profile/route.ts               |  153 [32m+[m
+ backend/src/app/favicon.ico                        |  Bin [31m0[m -> [32m25931[m bytes
+ backend/src/app/layout.tsx                         |   15 [32m+[m
+ backend/src/app/page.tsx                           |   16 [32m+[m
+ backend/src/config/cors.ts                         |   11 [32m+[m
+ backend/src/lib/prisma.ts                          |   11 [32m+[m
+ backend/tsconfig.json                              |   27 [32m+[m
+ frontend/application_icpc/.metadata                |   45 [32m+[m
+ .../application_icpc/PROJECT_STRUCTURE_NOTES.txt   |  230 [32m+[m
+ frontend/application_icpc/README.md                |  247 [32m+[m
+ frontend/application_icpc/analysis_options.yaml    |   28 [32m+[m
+ frontend/application_icpc/android/.gitignore       |   14 [32m+[m
+ .../application_icpc/android/app/build.gradle.kts  |   44 [32m+[m
+ .../android/app/src/debug/AndroidManifest.xml      |    7 [32m+[m
+ .../android/app/src/main/AndroidManifest.xml       |   45 [32m+[m
+ .../com/example/application_icpc/MainActivity.kt   |    5 [32m+[m
+ .../main/res/drawable-v21/launch_background.xml    |   12 [32m+[m
+ .../src/main/res/drawable/launch_background.xml    |   12 [32m+[m
+ .../app/src/main/res/mipmap-hdpi/ic_launcher.png   |  Bin [31m0[m -> [32m544[m bytes
+ .../app/src/main/res/mipmap-mdpi/ic_launcher.png   |  Bin [31m0[m -> [32m442[m bytes
+ .../app/src/main/res/mipmap-xhdpi/ic_launcher.png  |  Bin [31m0[m -> [32m721[m bytes
+ .../app/src/main/res/mipmap-xxhdpi/ic_launcher.png |  Bin [31m0[m -> [32m1031[m bytes
+ .../src/main/res/mipmap-xxxhdpi/ic_launcher.png    |  Bin [31m0[m -> [32m1443[m bytes
+ .../app/src/main/res/values-night/styles.xml       |   18 [32m+[m
+ .../android/app/src/main/res/values/styles.xml     |   18 [32m+[m
+ .../android/app/src/profile/AndroidManifest.xml    |    7 [32m+[m
+ frontend/application_icpc/android/build.gradle.kts |   21 [32m+[m
+ .../application_icpc/android/gradle.properties     |    3 [32m+[m
+ .../gradle/wrapper/gradle-wrapper.properties       |    5 [32m+[m
+ .../application_icpc/android/settings.gradle.kts   |   25 [32m+[m
+ frontend/application_icpc/flutter_01.log           |  192 [32m+[m
+ frontend/application_icpc/flutter_01.png           |  Bin [31m0[m -> [32m41492[m bytes
+ frontend/application_icpc/ios/.gitignore           |   34 [32m+[m
+ .../ios/Flutter/AppFrameworkInfo.plist             |   26 [32m+[m
+ .../application_icpc/ios/Flutter/Debug.xcconfig    |    1 [32m+[m
+ .../application_icpc/ios/Flutter/Release.xcconfig  |    1 [32m+[m
+ .../ios/Runner.xcodeproj/project.pbxproj           |  616 [32m++[m
+ .../project.xcworkspace/contents.xcworkspacedata   |    7 [32m+[m
+ .../xcshareddata/IDEWorkspaceChecks.plist          |    8 [32m+[m
+ .../xcshareddata/WorkspaceSettings.xcsettings      |    8 [32m+[m
+ .../xcshareddata/xcschemes/Runner.xcscheme         |  101 [32m+[m
+ .../Runner.xcworkspace/contents.xcworkspacedata    |    7 [32m+[m
+ .../xcshareddata/IDEWorkspaceChecks.plist          |    8 [32m+[m
+ .../xcshareddata/WorkspaceSettings.xcsettings      |    8 [32m+[m
+ .../application_icpc/ios/Runner/AppDelegate.swift  |   13 [32m+[m
+ .../AppIcon.appiconset/Contents.json               |  122 [32m+[m
+ .../AppIcon.appiconset/Icon-App-1024x1024@1x.png   |  Bin [31m0[m -> [32m10932[m bytes
+ .../AppIcon.appiconset/Icon-App-20x20@1x.png       |  Bin [31m0[m -> [32m295[m bytes
+ .../AppIcon.appiconset/Icon-App-20x20@2x.png       |  Bin [31m0[m -> [32m406[m bytes
+ .../AppIcon.appiconset/Icon-App-20x20@3x.png       |  Bin [31m0[m -> [32m450[m bytes
+ .../AppIcon.appiconset/Icon-App-29x29@1x.png       |  Bin [31m0[m -> [32m282[m bytes
+ .../AppIcon.appiconset/Icon-App-29x29@2x.png       |  Bin [31m0[m -> [32m462[m bytes
+ .../AppIcon.appiconset/Icon-App-29x29@3x.png       |  Bin [31m0[m -> [32m704[m bytes
+ .../AppIcon.appiconset/Icon-App-40x40@1x.png       |  Bin [31m0[m -> [32m406[m bytes
+ .../AppIcon.appiconset/Icon-App-40x40@2x.png       |  Bin [31m0[m -> [32m586[m bytes
+ .../AppIcon.appiconset/Icon-App-40x40@3x.png       |  Bin [31m0[m -> [32m862[m bytes
+ .../AppIcon.appiconset/Icon-App-60x60@2x.png       |  Bin [31m0[m -> [32m862[m bytes
+ .../AppIcon.appiconset/Icon-App-60x60@3x.png       |  Bin [31m0[m -> [32m1674[m bytes
+ .../AppIcon.appiconset/Icon-App-76x76@1x.png       |  Bin [31m0[m -> [32m762[m bytes
+ .../AppIcon.appiconset/Icon-App-76x76@2x.png       |  Bin [31m0[m -> [32m1226[m bytes
+ .../AppIcon.appiconset/Icon-App-83.5x83.5@2x.png   |  Bin [31m0[m -> [32m1418[m bytes
+ .../LaunchImage.imageset/Contents.json             |   23 [32m+[m
+ .../LaunchImage.imageset/LaunchImage.png           |  Bin [31m0[m -> [32m68[m bytes
+ .../LaunchImage.imageset/LaunchImage@2x.png        |  Bin [31m0[m -> [32m68[m bytes
+ .../LaunchImage.imageset/LaunchImage@3x.png        |  Bin [31m0[m -> [32m68[m bytes
+ .../Assets.xcassets/LaunchImage.imageset/README.md |    5 [32m+[m
+ .../ios/Runner/Base.lproj/LaunchScreen.storyboard  |   37 [32m+[m
+ .../ios/Runner/Base.lproj/Main.storyboard          |   26 [32m+[m
+ frontend/application_icpc/ios/Runner/Info.plist    |   49 [32m+[m
+ .../ios/Runner/Runner-Bridging-Header.h            |    1 [32m+[m
+ .../ios/RunnerTests/RunnerTests.swift              |   12 [32m+[m
+ frontend/application_icpc/lib/main.dart            |  295 [32m+[m
+ .../application_icpc/lib/models/activity_item.dart |   32 [32m+[m
+ .../lib/models/community_post.dart                 |   22 [32m+[m
+ .../application_icpc/lib/models/news_item.dart     |   16 [32m+[m
+ .../application_icpc/lib/models/user_profile.dart  |  149 [32m+[m
+ .../application_icpc/lib/models/volunteer.dart     |  109 [32m+[m
+ .../lib/models/volunteer_item.dart                 |   28 [32m+[m
+ .../application_icpc/lib/router/app_router.dart    |   65 [32m+[m
+ .../screens/activity/activity_create_screen.dart   |   49 [32m+[m
+ .../screens/activity/activity_detail_screen.dart   |   49 [32m+[m
+ .../lib/screens/activity/activity_list_screen.dart |   98 [32m+[m
+ .../lib/screens/auth/login_screen.dart             |  321 [32m+[m
+ .../lib/screens/auth/register_screen.dart          |  411 [32m++[m
+ .../screens/community/community_create_screen.dart |   49 [32m+[m
+ .../screens/community/community_detail_screen.dart |   49 [32m+[m
+ .../screens/community/community_
