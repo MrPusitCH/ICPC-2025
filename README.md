@@ -115,20 +115,20 @@ flutter build apk
 2. Commit with clear messages
 3. Open a PR describing the change
 
-## ⛏️ Minecraft Animations
+## 🎌 Anime Animations
 
 <div align="center">
-  <!-- Minecraft Steve walking -->
-  <img src="https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif" width="300" alt="Minecraft Steve" />
+  <!-- Anime coding -->
+  <img src="https://media.giphy.com/media/L1R1tvI9svkIWwpVYr/giphy.gif" width="300" alt="Anime Coding" />
   
-  <!-- Minecraft blocks building -->
-  <img src="https://media.giphy.com/media/l0MYt5jPR6QX5pnby/giphy.gif" width="300" alt="Minecraft Building" />
+  <!-- Anime programming -->
+  <img src="https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif" width="300" alt="Anime Programming" />
   
-  <!-- Minecraft mining -->
-  <img src="https://media.giphy.com/media/26BRrSvJUa5UfNL9e/giphy.gif" width="300" alt="Minecraft Mining" />
+  <!-- Anime developer -->
+  <img src="https://media.giphy.com/media/l0MYt5jPR6QX5pnby/giphy.gif" width="300" alt="Anime Developer" />
   
-  <!-- Minecraft creeper -->
-  <img src="https://media.giphy.com/media/26BRrSvJUa5UfNL9e/giphy.gif" width="300" alt="Minecraft Creeper" />
+  <!-- Anime tech -->
+  <img src="https://media.giphy.com/media/26BRrSvJUa5UfNL9e/giphy.gif" width="300" alt="Anime Tech" />
 </div>
 
 ## 📄 License
