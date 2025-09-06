@@ -118,14 +118,17 @@ flutter build apk
 ## ⛏️ Minecraft Animations
 
 <div align="center">
-  <!-- Creeper animation -->
-  <img src="https://media.giphy.com/media/A06UFEx8jxEwU/giphy.gif" width="320" alt="Minecraft Creeper" />
+  <!-- Minecraft Steve walking -->
+  <img src="https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif" width="300" alt="Minecraft Steve" />
   
-  <!-- Mining animation -->
-  <img src="https://media.giphy.com/media/l0HlSNOxJB956qwfK/giphy.gif" width="320" alt="Minecraft Mining" />
+  <!-- Minecraft blocks building -->
+  <img src="https://media.giphy.com/media/l0MYt5jPR6QX5pnby/giphy.gif" width="300" alt="Minecraft Building" />
   
-  <!-- Redstone animation -->
-  <img src="https://media.giphy.com/media/3oriO6qJiXajN0Tyys/giphy.gif" width="320" alt="Minecraft Redstone" />
+  <!-- Minecraft mining -->
+  <img src="https://media.giphy.com/media/26BRrSvJUa5UfNL9e/giphy.gif" width="300" alt="Minecraft Mining" />
+  
+  <!-- Minecraft creeper -->
+  <img src="https://media.giphy.com/media/26BRrSvJUa5UfNL9e/giphy.gif" width="300" alt="Minecraft Creeper" />
 </div>
 
 ## 📄 License
