@@ -119,7 +119,7 @@ flutter build apk
 
 <div align="center">
   <!-- Anime coding -->
-  <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExemx5MWV2eWVmZng5ZTI3Mjd1bTQ3cWthYXp0bndtYzgwYTM1YW9jMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/iMEOxEJP7CJBS/giphy.gif" width="1000" alt="Anime Coding" />
+  <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExdmVkcXIyNWV0dGxmNWN3dnhkcGx3c3BneWRxbnF1cW1wemRianpneiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/AFdcYElkoNAUE/giphy.gif" width="1000" alt="Anime Coding" />
 
 </div>
 
