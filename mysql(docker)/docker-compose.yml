@@ -1,0 +1,24 @@
+version: "3.9"   # เวอร์ชันของ Docker Compose file format
+
+services:        # ส่วนที่กำหนด service/container ที่จะรัน
+  db:            # ชื่อ service (ตั้งชื่อเองได้ เช่น db, mysqlserver ฯลฯ)
+    image: mysql:8.0           # ใช้ image mysql เวอร์ชัน 8.0 จาก Docker Hub
+    container_name: mysql      # ตั้งชื่อ container ที่จะถูกสร้าง
+    restart: unless-stopped    # ให้ container restart อัตโนมัติ เว้นแต่เราจะ stop เอง
+    ports:
+      - "3306:3306"            # map port: "host:container"
+                               # 3306 ของเครื่องเรา → 3306 ของ container
+                               # ถ้ามี MySQL อื่นอยู่แล้วให้เปลี่ยนเป็น "3307:3306"
+
+    environment:               # ตัวแปร environment สำหรับตั้งค่า MySQL ตอนสร้าง container
+      MYSQL_ROOT_PASSWORD: p@ssw0rd1   # รหัสผ่านของ user root
+      MYSQL_DATABASE: neighbor             # สร้าง database ชื่อ appdb ให้อัตโนมัติ
+      MYSQL_USER: msg            # สร้าง user เพิ่มชื่อ appuser
+      MYSQL_PASSWORD: p@ssw0rd2         # ตั้งรหัสผ่านให้ appuser
+
+    volumes:
+      - mysql_data:/var/lib/mysql      # เก็บ data ลง volume ชื่อ mysql_data
+                                       # /var/lib/mysql คือที่เก็บไฟล์ DB ข้างใน container
+
+volumes:
+  mysql_data:   # ประกาศ volume ชื่อ mysql_data เอาไว้ใช้เก็บข้อมูลถาวร
