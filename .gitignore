@@ -1,2 +1,15 @@
-backend/
-frontend/
+### Node/Next.js (backend)
+backend/node_modules/
+backend/.next/
+backend/.env*
+
+### Flutter (frontend/application_icpc)
+frontend/application_icpc/.dart_tool/
+frontend/application_icpc/build/
+frontend/application_icpc/ios/Flutter/ephemeral/
+frontend/application_icpc/android/.gradle/
+frontend/application_icpc/.idea/
+
+### OS junk
+.DS_Store
+Thumbs.db
