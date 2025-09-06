@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../widgets/news/news_card.dart';
-import '../../models/news_item.dart';
 import '../../theme/app_theme.dart';
-import '../../router/app_router.dart';
-import '../../services/mock_data_service.dart';
+import 'news_detail_screen.dart';
 
-class NewsListScreen extends StatelessWidget {
+class NewsListScreen extends StatefulWidget {
   const NewsListScreen({super.key});
 
-  // Get mock data from service
-  List<NewsItem> get _mockNews => MockDataService.getNewsItems();
+  @override
+  State<NewsListScreen> createState() => _NewsListScreenState();
+}
 
+class _NewsListScreenState extends State<NewsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,59 +17,103 @@ class NewsListScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'News',
-          style: AppTheme.titleMedium,
-        ),
-      ),
-      body: Column(
-        children: [
-          // Optional search field (read-only placeholder)
-          Container(
-            color: AppTheme.white,
-            padding: const EdgeInsets.all(AppTheme.spacing16),
-            child: TextField(
-              readOnly: true,
-              decoration: InputDecoration(
-                hintText: 'Search news...',
-                hintStyle: TextStyle(
-                  color: Colors.grey.shade500,
-                  fontSize: 16,
-                ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: Colors.grey.shade500,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                filled: true,
-                fillColor: Colors.grey.shade50,
-              ),
-            ),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1A1A1A),
           ),
-          
-          // News list
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(AppTheme.spacing16),
-              itemCount: _mockNews.length,
-              itemBuilder: (context, index) {
-                final news = _mockNews[index];
-                return NewsCard(
-                  news: news,
-                  onTap: () {
-                    // Navigate to news detail
-                    AppRouter.pushNamed(context, AppRouter.newsDetail);
-                  },
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: 5, // Mock data count
+        itemBuilder: (context, index) {
+          return Card(
+            margin: const EdgeInsets.only(bottom: 16),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NewsDetailScreen(),
+                  ),
                 );
               },
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // News title
+                    Text(
+                      'News Title ${index + 1}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    
+                    // News preview
+                    Text(
+                      'This is a preview of the news content. It contains important information about community events and updates...',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF7A8A9A),
+                        height: 1.4,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    // Date and read more
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '2 hours ago',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        Text(
+                          'Read more',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.primaryBlue,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

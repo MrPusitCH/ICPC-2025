@@ -7,14 +7,6 @@ class AuthService {
   static const String _userIdKey = 'current_user_id';
   static const String _userTokenKey = 'user_token';
   
-  // Mock user data for testing
-  static const Map<String, String> mockUsers = {
-    'elder.john@example.com': 'password123',
-    'volunteer.sarah@example.com': 'password123',
-    'organizer.mike@example.com': 'password123',
-    'user.emma@example.com': 'password123',
-    'admin@icpc.com': 'password123',
-  };
 
   static Future<Map<String, dynamic>?> login(String email, String password) async {
     try {
@@ -34,10 +26,7 @@ class AuthService {
         
         // Store user ID and token for future use
         if (user != null && user['user_id'] != null) {
-          print('AuthService: Storing user session - user_id: ${user['user_id']}, token: $token');
           await _storeUserSession(user['user_id'], token);
-        } else {
-          print('AuthService: User data missing - user: $user, user_id: ${user?['user_id']}');
         }
         
         return {
@@ -104,76 +93,6 @@ class AuthService {
     }
   }
 
-  static Future<bool> checkHealth() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/health'),
-        headers: {'Content-Type': 'application/json'},
-      );
-      
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return data['ok'] == true;
-      }
-      return false;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Logout user and clear session
-  static Future<Map<String, dynamic>> logout() async {
-    try {
-      // Clear local session
-      await clearUserSession();
-      
-      // Call backend logout endpoint if needed
-      final token = await getCurrentUserToken();
-      if (token != null) {
-        final response = await http.post(
-          Uri.parse('$baseUrl/auth/logout'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-        );
-        
-        return {
-          'success': response.statusCode == 200,
-          'message': 'Logged out successfully',
-        };
-      }
-      
-      return {
-        'success': true,
-        'message': 'Logged out successfully',
-      };
-    } catch (e) {
-      // Even if backend call fails, clear local session
-      await clearUserSession();
-      return {
-        'success': true,
-        'message': 'Logged out successfully',
-      };
-    }
-  }
-
-  static String _getUserRole(String email) {
-    if (email.contains('elder')) return 'ELDER';
-    if (email.contains('volunteer')) return 'VOLUNTEER';
-    if (email.contains('organizer')) return 'ORGANIZER';
-    if (email.contains('admin')) return 'ADMIN';
-    return 'USER';
-  }
-
-  static String _getUserName(String email) {
-    if (email.contains('elder')) return 'John Smith';
-    if (email.contains('volunteer')) return 'Sarah Johnson';
-    if (email.contains('organizer')) return 'Mike Chen';
-    if (email.contains('admin')) return 'Admin User';
-    return 'Emma Wilson';
-  }
-
   /// Store user session data
   static Future<void> _storeUserSession(int userId, String? token) async {
     final prefs = await SharedPreferences.getInstance();
@@ -187,9 +106,7 @@ class AuthService {
   static Future<int?> getCurrentUserId() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getInt(_userIdKey);
-      print('AuthService: Retrieved user ID from storage: $userId');
-      return userId;
+      return prefs.getInt(_userIdKey);
     } catch (e) {
       print('Error getting current user ID: $e');
       return null;
@@ -222,5 +139,10 @@ class AuthService {
   static Future<bool> isLoggedIn() async {
     final userId = await getCurrentUserId();
     return userId != null;
+  }
+
+  /// Logout user
+  static Future<void> logout() async {
+    await clearUserSession();
   }
 }

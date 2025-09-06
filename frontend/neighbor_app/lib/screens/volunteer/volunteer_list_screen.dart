@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/volunteer_item.dart';
 import '../../widgets/volunteer/volunteer_card.dart';
-import '../../services/mock_data_service.dart';
+import '../../services/posts_api_service.dart';
 import 'volunteer_detail_screen.dart';
 import 'volunteer_create_screen.dart';
 
@@ -24,18 +24,34 @@ class _VolunteerListScreenState extends State<VolunteerListScreen> {
     _loadVolunteers();
   }
 
-  void _loadVolunteers() {
+  Future<void> _loadVolunteers() async {
+    print('Loading volunteers...');
     setState(() {
       _isLoading = true;
     });
 
-    // Simulate loading delay
-    Future.delayed(const Duration(milliseconds: 500), () {
+    try {
+      final volunteers = await PostsApiService.getPosts();
+      print('Loaded ${volunteers.length} volunteers');
       setState(() {
-        _volunteers = MockDataService.getVolunteerItems();
+        _volunteers = volunteers;
         _isLoading = false;
       });
-    });
+    } catch (e) {
+      print('Error loading volunteers: $e');
+      setState(() {
+        _isLoading = false;
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load volunteer requests: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
 
@@ -158,15 +174,32 @@ class _VolunteerListScreenState extends State<VolunteerListScreen> {
                         final volunteer = _filteredVolunteers[index];
                         return VolunteerCard(
                           volunteer: volunteer,
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => VolunteerDetailScreen(
                                   volunteer: volunteer,
+                                  onDeleted: (deletedId) {
+                                    // Optimistically remove from list before server refresh
+                                    setState(() {
+                                      _volunteers.removeWhere((v) => v.id == deletedId);
+                                    });
+                                  },
                                 ),
                               ),
                             );
+                            // Refresh the list if a deletion occurred
+                            print('Navigation result: $result');
+                            if (result == true) {
+                              print('Deletion detected, refreshing list and ensuring back on list...');
+                              // Ensure we are back on list screen; if nested, pop any stray routes
+                              if (mounted && Navigator.of(context).canPop()) {
+                                Navigator.of(context).pop();
+                              }
+                              await _loadVolunteers();
+                              print('List refreshed after deletion');
+                            }
                           },
                         );
                       },

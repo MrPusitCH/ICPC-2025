@@ -12,7 +12,6 @@ class ProfileService {
   static Future<UserProfile> getUserProfile(int userId) async {
     try {
       final url = '$baseUrl/profile/$userId';
-      print('ProfileService: Making request to $url');
       
       final response = await http.get(
         Uri.parse(url),
@@ -21,17 +20,29 @@ class ProfileService {
         },
       );
 
-      print('ProfileService: Response status: ${response.statusCode}');
-      print('ProfileService: Response body: ${response.body}');
-
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        return UserProfile.fromJson(data);
+        final dynamic responseData = json.decode(response.body);
+        
+        // Handle both direct object response and wrapped response
+        Map<String, dynamic> data;
+        if (responseData is Map<String, dynamic>) {
+          // Check if it's wrapped in success/data structure
+          if (responseData.containsKey('success') && responseData.containsKey('data')) {
+            data = responseData['data'] as Map<String, dynamic>;
+          } else {
+            // Direct object response
+            data = responseData;
+          }
+        } else {
+          throw Exception('Invalid response format: expected Map but got ${responseData.runtimeType}');
+        }
+        
+        final profile = UserProfile.fromJson(data);
+        return profile;
       } else {
         throw Exception('Failed to load profile: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('ProfileService: Error occurred: $e');
       throw Exception('Error fetching profile: $e');
     }
   }

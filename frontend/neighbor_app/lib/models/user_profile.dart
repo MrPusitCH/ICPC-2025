@@ -32,7 +32,7 @@ class UserProfile {
 
   /// Create UserProfile from JSON
   factory UserProfile.fromJson(Map<String, dynamic> json) {
-    // Calculate age from date_of_birth if available
+    // Calculate age from date_of_birth
     String age = '';
     if (json['date_of_birth'] != null) {
       final birthDate = DateTime.parse(json['date_of_birth']);

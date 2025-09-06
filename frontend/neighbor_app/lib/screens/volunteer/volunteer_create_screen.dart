@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/common/primary_button.dart';
+import '../../services/posts_api_service.dart';
 
 class VolunteerCreateScreen extends StatefulWidget {
   const VolunteerCreateScreen({super.key});
@@ -54,27 +55,79 @@ class _VolunteerCreateScreenState extends State<VolunteerCreateScreen> {
     }
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
-      // Simulate form submission
-      Future.delayed(const Duration(seconds: 2), () {
+      try {
+        // Parse date and time
+        final dateParts = _dateController.text.split('/');
+        
+        if (dateParts.length == 3) {
+          final day = int.parse(dateParts[0]);
+          final month = int.parse(dateParts[1]);
+          final year = int.parse(dateParts[2]);
+          
+          // Parse time with AM/PM
+          final timeText = _timeController.text;
+          final isPM = timeText.toUpperCase().contains('PM');
+          final timeWithoutAMPM = timeText.replaceAll(RegExp(r'[AP]M', caseSensitive: false), '').trim();
+          final timeParts = timeWithoutAMPM.split(':');
+          
+          if (timeParts.length == 2) {
+            int hour = int.parse(timeParts[0]);
+            final minute = int.parse(timeParts[1]);
+            
+            // Convert to 24-hour format
+            if (isPM && hour != 12) {
+              hour += 12;
+            } else if (!isPM && hour == 12) {
+              hour = 0;
+            }
+            
+            final dateTime = DateTime(year, month, day, hour, minute);
+            final isoDateTime = dateTime.toIso8601String();
+            
+            // Create the volunteer request
+            await PostsApiService.createPost(
+              title: _titleController.text,
+              description: _descriptionController.text,
+              dateTime: isoDateTime,
+              reward: _rewardController.text.isNotEmpty ? _rewardController.text : null,
+            );
+            
+            setState(() {
+              _isLoading = false;
+            });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Volunteer request created successfully!'),
+                backgroundColor: Color(0xFF27AE60),
+              ),
+            );
+
+            Navigator.pop(context, true); // Return true to indicate success
+          } else {
+            throw Exception('Invalid time format. Please select a valid time.');
+          }
+        } else {
+          throw Exception('Invalid date format. Please select a valid date.');
+        }
+      } catch (e) {
         setState(() {
           _isLoading = false;
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Volunteer request created successfully!'),
-            backgroundColor: Color(0xFF27AE60),
+          SnackBar(
+            content: Text('Failed to create volunteer request: ${e.toString()}'),
+            backgroundColor: Colors.red,
           ),
         );
-
-        Navigator.pop(context);
-      });
+      }
     }
   }
 

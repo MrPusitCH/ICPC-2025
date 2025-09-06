@@ -130,6 +130,7 @@ class MockDataService {
     return [
       const Volunteer(
         id: '1',
+        userId: 1,
         requesterName: 'Dang Hayai',
         title: 'Could you help me take me to the hospital?',
         description: 'I need someone to help me get to my doctor\'s appointment next week. I have trouble walking long distances and would appreciate any assistance.',
@@ -142,6 +143,7 @@ class MockDataService {
       ),
       const Volunteer(
         id: '2',
+        userId: 2,
         requesterName: 'Sarah Johnson',
         title: 'Help with grocery shopping',
         description: 'I need help carrying groceries from the store to my apartment. The bags are quite heavy and I have a back condition.',
@@ -154,6 +156,7 @@ class MockDataService {
       ),
       const Volunteer(
         id: '3',
+        userId: 3,
         requesterName: 'Mike Chen',
         title: 'Pet sitting needed',
         description: 'I\'m going out of town for the weekend and need someone to take care of my cat. Just feeding and basic care needed.',

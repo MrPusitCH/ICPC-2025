@@ -108,6 +108,7 @@ class ApiService {
     // Return mock created volunteer request
     return const Volunteer(
       id: 'new',
+      userId: 1, // Mock user ID
       requesterName: 'Current User',
       title: 'New Volunteer Request',
       description: 'This is a new volunteer request created by the user.',
