@@ -1,19 +1,21 @@
 <div align="center">
 
-  <!-- Simple animated gradient banner (SVG) -->
-  <img src="https://raw.githubusercontent.com/nikolalsvk/gradient-avatars/main/examples/banner-gradient.svg" alt="ICPC 2025 Banner" width="100%" />
+  <!-- Minecraft-styled animated banner -->
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:2ecc71,50:27ae60,100:145A32&height=220&section=header&text=ICPC%202025%20%E2%80%93%20Neighbor%20App&fontSize=36&fontColor=ffffff&animation=twinkling" alt="ICPC 2025 Minecraft Banner" width="100%" />
 
-  <h1>ICPC 2025 – Neighbor App & Backend</h1>
-  
+  <!-- Typing animation (Minecraft vibe) -->
+  <img src="https://readme-typing-svg.demolab.com?font=Minecraft&size=26&duration=2800&pause=900&color=34D399&center=true&vCenter=true&width=800&lines=Full-stack+Neighbor+App+%26+Backend;Next.js+15+%7C+Flutter+%7C+Prisma+%7C+MySQL;Crafted+with+%E2%9D%A4%EF%B8%8F+and+Blocks" alt="Typing Animation" />
+
   <p>
     <a href="#features"><img alt="Features" src="https://img.shields.io/badge/Features-Next.js%2015%20%7C%20Flutter%20%7C%20Prisma%20%7C%20Docker-1E88E5?style=for-the-badge"/></a>
     <a href="#quickstart"><img alt="Quickstart" src="https://img.shields.io/badge/Quickstart-1%20Command-43A047?style=for-the-badge"/></a>
     <a href="#scripts"><img alt="Scripts" src="https://img.shields.io/badge/Scripts-yarn%20%7C%20npm%20%7C%20flutter-F57C00?style=for-the-badge"/></a>
   </p>
 
-  <p><em>Build, run, and contribute to a full-stack app for volunteering & neighbors helping neighbors.</em> 🧡</p>
+  <p><em>Build, run, and contribute to a full-stack app for volunteering & neighbors helping neighbors.</em> 🧱🟩</p>
 
-  <img src="https://github.com/Platane/snk/raw/output/github-contribution-grid-snake.svg" width="100%" alt="animated snake"/>
+  <!-- Grass block divider -->
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=145A32&height=10&section=footer&reversal=true" width="100%" alt="divider"/>
 </div>
 
 ---
