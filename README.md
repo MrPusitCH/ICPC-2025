@@ -115,6 +115,19 @@ flutter build apk
 2. Commit with clear messages
 3. Open a PR describing the change
 
+## ⛏️ Minecraft Animations
+
+<div align="center">
+  <!-- Creeper animation -->
+  <img src="https://media.giphy.com/media/A06UFEx8jxEwU/giphy.gif" width="320" alt="Minecraft Creeper" />
+  
+  <!-- Mining animation -->
+  <img src="https://media.giphy.com/media/l0HlSNOxJB956qwfK/giphy.gif" width="320" alt="Minecraft Mining" />
+  
+  <!-- Redstone animation -->
+  <img src="https://media.giphy.com/media/3oriO6qJiXajN0Tyys/giphy.gif" width="320" alt="Minecraft Redstone" />
+</div>
+
 ## 📄 License
 
 MIT
