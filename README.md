@@ -119,16 +119,8 @@ flutter build apk
 
 <div align="center">
   <!-- Anime coding -->
-  <img src="https://media.giphy.com/media/L1R1tvI9svkIWwpVYr/giphy.gif" width="300" alt="Anime Coding" />
-  
-  <!-- Anime programming -->
-  <img src="https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif" width="300" alt="Anime Programming" />
-  
-  <!-- Anime developer -->
-  <img src="https://media.giphy.com/media/l0MYt5jPR6QX5pnby/giphy.gif" width="300" alt="Anime Developer" />
-  
-  <!-- Anime tech -->
-  <img src="https://media.giphy.com/media/26BRrSvJUa5UfNL9e/giphy.gif" width="300" alt="Anime Tech" />
+  <img src="https://tenor.com/jpwybLxOXnZ.gif" width="500" alt="Anime Coding" />
+
 </div>
 
 ## 📄 License
