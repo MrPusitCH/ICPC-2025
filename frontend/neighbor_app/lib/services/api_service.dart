@@ -1,6 +1,11 @@
 /// API service for the Neighbor app
-/// Placeholder for future backend integration
+/// 
+/// This service handles all communication with the backend API.
+/// Currently uses mock data service as a placeholder until backend integration is complete.
+/// 
+/// All methods simulate network delays to provide realistic user experience.
 library;
+
 import '../models/news_item.dart';
 import '../models/community_post.dart';
 import '../models/activity_item.dart';
@@ -8,50 +13,86 @@ import '../models/volunteer_item.dart';
 import '../models/user_profile.dart';
 import 'mock_data_service.dart';
 
+/// Central API service class for handling all backend communications
+/// 
+/// This class provides a clean interface for all API operations and
+/// can be easily replaced with actual HTTP calls when backend is ready
 class ApiService {
   // TODO: Replace with actual API calls when backend is ready
+  // Consider using packages like dio or http for network requests
   
-  /// Get news items from API
+  // ============================================================================
+  // READ OPERATIONS
+  // Methods for fetching data from the API
+  // ============================================================================
+  
+  /// Fetches all news items from the API
+  /// 
+  /// Returns a list of news items with simulated network delay
+  /// In production, this would make an HTTP GET request to /api/news
   static Future<List<NewsItem>> getNewsItems() async {
-    // Simulate API delay
+    // Simulate API delay for realistic user experience
     await Future.delayed(const Duration(milliseconds: 500));
     return MockDataService.getNewsItems();
   }
 
-  /// Get community posts from API
+  /// Fetches all community posts from the API
+  /// 
+  /// Returns a list of community posts with simulated network delay
+  /// In production, this would make an HTTP GET request to /api/community/posts
   static Future<List<CommunityPost>> getCommunityPosts() async {
-    // Simulate API delay
+    // Simulate API delay for realistic user experience
     await Future.delayed(const Duration(milliseconds: 500));
     return MockDataService.getCommunityPosts();
   }
 
-  /// Get activity items from API
+  /// Fetches all activity items from the API
+  /// 
+  /// Returns a list of activity items with simulated network delay
+  /// In production, this would make an HTTP GET request to /api/activities
   static Future<List<ActivityItem>> getActivityItems() async {
-    // Simulate API delay
+    // Simulate API delay for realistic user experience
     await Future.delayed(const Duration(milliseconds: 500));
     return MockDataService.getActivityItems();
   }
 
-  /// Get volunteer items from API
+  /// Fetches all volunteer opportunities from the API
+  /// 
+  /// Returns a list of volunteer items with simulated network delay
+  /// In production, this would make an HTTP GET request to /api/volunteers
   static Future<List<Volunteer>> getVolunteerItems() async {
-    // Simulate API delay
+    // Simulate API delay for realistic user experience
     await Future.delayed(const Duration(milliseconds: 500));
     return MockDataService.getVolunteerItems();
   }
 
-  /// Get user profile from API
+  /// Fetches the current user's profile from the API
+  /// 
+  /// Returns user profile data with simulated network delay
+  /// In production, this would make an HTTP GET request to /api/user/profile
   static Future<UserProfile> getUserProfile() async {
-    // Simulate API delay
+    // Simulate API delay for realistic user experience
     await Future.delayed(const Duration(milliseconds: 500));
     return MockDataService.getUserProfile();
   }
 
-  /// Create a new community post
+  // ============================================================================
+  // WRITE OPERATIONS
+  // Methods for creating and updating data via the API
+  // ============================================================================
+  
+  /// Creates a new community post
+  /// 
+  /// [title] - The title of the post
+  /// [body] - The content/body of the post
+  /// 
+  /// Returns the created post with simulated network delay
+  /// In production, this would make an HTTP POST request to /api/community/posts
   static Future<CommunityPost> createCommunityPost({
     required String title,
     required String body,
   }) async {
-    // Simulate API delay
+    // Simulate API delay for realistic user experience
     await Future.delayed(const Duration(milliseconds: 1000));
     
     // Return mock created post

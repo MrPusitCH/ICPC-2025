@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'screens/main_app_screen.dart';
 import 'screens/auth/login_screen.dart';
-import 'screens/news/news_detail_screen.dart';
+import 'router/app_router.dart';
 
+/// Main entry point of the Neighbor Flutter application
+/// This app is designed for community engagement and volunteer activities
 void main() {
   runApp(const NeighborApp());
 }
 
+/// Main application widget that configures the overall app structure
+/// Handles theming, routing, and global app settings
 class NeighborApp extends StatelessWidget {
   const NeighborApp({super.key});
 
@@ -14,45 +17,47 @@ class NeighborApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Neighbor (隣人)',
+      // Configure app theme with custom color scheme and typography
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1E88E5), // Blue color for icons
+          seedColor: const Color(0xFF1E88E5), // Primary blue color for icons and accents
           brightness: Brightness.light,
         ),
-        scaffoldBackgroundColor: const Color(0xFFF6F7F9), // Light background
+        scaffoldBackgroundColor: const Color(0xFFF6F7F9), // Light gray background
+        // Custom text theme for consistent typography across the app
         textTheme: const TextTheme(
           headlineSmall: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF1A1A1A),
+            color: Color(0xFF1A1A1A), // Dark gray for headings
           ),
           titleMedium: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: Color(0xFF1A1A1A),
+            color: Color(0xFF1A1A1A), // Dark gray for titles
           ),
           bodyMedium: TextStyle(
             fontSize: 14,
-            color: Color(0xFF7A8A9A),
+            color: Color(0xFF7A8A9A), // Light gray for body text
           ),
         ),
       ),
+      // Set login screen as the initial route
       home: const LoginScreen(),
-      routes: {
-        '/main': (context) => const MainAppScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/activity/detail': (context) => const ActivityDetailScreen(),
-        '/activity/create': (context) => const ActivityCreateScreen(),
-        '/community/detail': (context) => const CommunityDetailScreen(),
-        '/community/create': (context) => const CommunityCreateScreen(),
-        '/news/detail': (context) => const NewsDetailScreen(),
-      },
+      // Use centralized routes from AppRouter
+      routes: AppRouter.routes,
     );
   }
 }
 
-// Placeholder screens for named routes
+// ============================================================================
+// PLACEHOLDER SCREENS FOR NAMED ROUTES
+// These are temporary screens that will be replaced with actual implementations
+// ============================================================================
+
+/// Placeholder screen for activity detail view
+/// TODO: Replace with actual ActivityDetailScreen implementation
 class ActivityDetailScreen extends StatelessWidget {
   const ActivityDetailScreen({super.key});
 
@@ -113,8 +118,11 @@ class ActivityDetailScreen extends StatelessWidget {
   }
 }
 
+/// Placeholder screen for creating new activities
+/// TODO: Replace with actual ActivityCreateScreen implementation
 class ActivityCreateScreen extends StatelessWidget {
   const ActivityCreateScreen({super.key});
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -172,7 +180,12 @@ class ActivityCreateScreen extends StatelessWidget {
   }
 }
 
-// Placeholder screens for community routes
+// ============================================================================
+// COMMUNITY ROUTE PLACEHOLDERS
+// ============================================================================
+
+/// Placeholder screen for community post detail view
+/// TODO: Replace with actual CommunityDetailScreen implementation
 class CommunityDetailScreen extends StatelessWidget {
   const CommunityDetailScreen({super.key});
 
@@ -233,6 +246,8 @@ class CommunityDetailScreen extends StatelessWidget {
   }
 }
 
+/// Placeholder screen for creating new community posts
+/// TODO: Replace with actual CommunityCreateScreen implementation
 class CommunityCreateScreen extends StatelessWidget {
   const CommunityCreateScreen({super.key});
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
+import '../../router/app_router.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -60,7 +61,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               backgroundColor: AppTheme.primaryBlue,
             ),
           );
-          Navigator.pushReplacementNamed(context, '/main');
+          AppRouter.pushNamedAndRemoveUntil(context, AppRouter.main);
         }
       } else {
         // Show error message

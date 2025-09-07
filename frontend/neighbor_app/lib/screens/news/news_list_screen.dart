@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
-import 'news_detail_screen.dart';
+import '../../router/app_router.dart';
 
 class NewsListScreen extends StatefulWidget {
   const NewsListScreen({super.key});
@@ -39,12 +39,8 @@ class _NewsListScreenState extends State<NewsListScreen> {
             ),
             child: InkWell(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NewsDetailScreen(),
-                  ),
-                );
+                // Navigate to news detail using AppRouter
+                AppRouter.pushNamed(context, AppRouter.newsDetail);
               },
               borderRadius: BorderRadius.circular(16),
               child: Container(

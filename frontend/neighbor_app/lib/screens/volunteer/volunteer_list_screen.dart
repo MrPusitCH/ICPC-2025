@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/volunteer_item.dart';
 import '../../widgets/volunteer/volunteer_card.dart';
 import '../../services/posts_api_service.dart';
-import 'volunteer_detail_screen.dart';
-import 'volunteer_create_screen.dart';
+import '../../router/app_router.dart';
 
 class VolunteerListScreen extends StatefulWidget {
   const VolunteerListScreen({super.key});
@@ -175,19 +174,19 @@ class _VolunteerListScreenState extends State<VolunteerListScreen> {
                         return VolunteerCard(
                           volunteer: volunteer,
                           onTap: () async {
-                            final result = await Navigator.push(
+                            // Use AppRouter for navigation with arguments
+                            final result = await AppRouter.pushNamed(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => VolunteerDetailScreen(
-                                  volunteer: volunteer,
-                                  onDeleted: (deletedId) {
-                                    // Optimistically remove from list before server refresh
-                                    setState(() {
-                                      _volunteers.removeWhere((v) => v.id == deletedId);
-                                    });
-                                  },
-                                ),
-                              ),
+                              AppRouter.volunteerDetail,
+                              arguments: {
+                                'volunteer': volunteer,
+                                'onDeleted': (String deletedId) {
+                                  // Optimistically remove from list before server refresh
+                                  setState(() {
+                                    _volunteers.removeWhere((v) => v.id == deletedId);
+                                  });
+                                },
+                              },
                             );
                             // Refresh the list if a deletion occurred
                             print('Navigation result: $result');
@@ -210,12 +209,8 @@ class _VolunteerListScreenState extends State<VolunteerListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const VolunteerCreateScreen(),
-            ),
-          ).then((_) {
+          // Use AppRouter for navigation
+          AppRouter.pushNamed(context, AppRouter.volunteerCreate).then((_) {
             // Refresh the list when returning from create screen
             _loadVolunteers();
           });

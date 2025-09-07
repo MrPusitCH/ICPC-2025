@@ -4,7 +4,7 @@ import '../../widgets/profile/profile_section_card.dart';
 import '../../services/profile_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/user_profile.dart';
-import 'profile_edit_screen.dart';
+import '../../router/app_router.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -77,18 +77,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               size: 24,
             ),
             onPressed: () {
-              // Navigate to settings screen if it exists
-              try {
-                Navigator.pushNamed(context, '/settings');
-              } catch (e) {
-                // Show placeholder message if route doesn't exist
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Settings screen coming soon!'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              }
+              // Navigate to settings screen using AppRouter
+              AppRouter.pushNamed(context, AppRouter.settings);
             },
           ),
           // Edit icon
@@ -99,12 +89,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               size: 24,
             ),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ProfileEditScreen(),
-                ),
-              );
+              // Navigate to profile edit screen using AppRouter
+              AppRouter.pushNamed(context, AppRouter.profileEdit);
             },
           ),
         ],

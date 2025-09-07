@@ -6,6 +6,10 @@ import 'community/community_feed_screen.dart';
 import 'news/news_list_screen.dart';
 import 'profile/profile_screen.dart';
 
+/// Main application screen that contains the bottom navigation bar
+/// and manages the different app sections (Volunteer, Activity, Community, News, Profile)
+/// 
+/// This screen uses IndexedStack to maintain state across tab switches
 class MainAppScreen extends StatefulWidget {
   const MainAppScreen({super.key});
 
@@ -14,8 +18,12 @@ class MainAppScreen extends StatefulWidget {
 }
 
 class _MainAppScreenState extends State<MainAppScreen> {
+  /// Currently selected tab index (0-4)
+  /// 0: Volunteer, 1: Activity, 2: Community, 3: News, 4: Profile
   int _selectedIndex = 3; // Default to News tab (now index 3 after removing notifications)
 
+  /// List of all main app screens in the same order as bottom navigation items
+  /// IndexedStack maintains the state of each screen when switching tabs
   final List<Widget> _screens = [
     const VolunteerListScreen(),
     const ActivityListScreen(),
@@ -27,10 +35,13 @@ class _MainAppScreenState extends State<MainAppScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Use IndexedStack to maintain state across tab switches
+      // Only the selected screen is built and displayed
       body: IndexedStack(
         index: _selectedIndex,
         children: _screens,
       ),
+      // Bottom navigation bar for main app sections
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
@@ -39,6 +50,7 @@ class _MainAppScreenState extends State<MainAppScreen> {
             _selectedIndex = index;
           });
         },
+        // Theme colors for navigation items
         selectedItemColor: AppTheme.primaryBlue,
         unselectedItemColor: AppTheme.greyText,
         selectedLabelStyle: AppTheme.labelSmall.copyWith(

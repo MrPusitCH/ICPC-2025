@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../services/auth_service.dart';
-import 'register_screen.dart';
+import '../../router/app_router.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
               backgroundColor: AppTheme.primaryBlue,
             ),
           );
-          Navigator.pushReplacementNamed(context, '/main');
+          AppRouter.pushNamedAndRemoveUntil(context, AppRouter.main);
         }
       } else {
         // Show error message
@@ -271,12 +271,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RegisterScreen(),
-                        ),
-                      );
+                      // Navigate to register screen using AppRouter
+                      AppRouter.pushNamed(context, AppRouter.register);
                     },
                     child: Text(
                       'Sign Up',
