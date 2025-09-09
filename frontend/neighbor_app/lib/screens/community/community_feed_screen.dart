@@ -23,32 +23,50 @@ class CommunityFeedScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Optional composer placeholder (disabled)
+          // Make Post button/composer area
           Container(
             color: AppTheme.white,
             padding: const EdgeInsets.all(AppTheme.spacing16),
-            child: TextField(
-              enabled: false,
-              decoration: InputDecoration(
-                hintText: 'Share something to your neighbors…',
-                hintStyle: TextStyle(
-                  color: Colors.grey.shade500,
-                  fontSize: 16,
+            child: InkWell(
+              onTap: () {
+                // Navigate to create community post
+                AppRouter.pushNamed(context, AppRouter.communityCreate);
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacing16,
+                  vertical: AppTheme.spacing12,
                 ),
-                prefixIcon: Icon(
-                  Icons.edit_outlined,
-                  color: Colors.grey.shade500,
-                ),
-                border: OutlineInputBorder(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  color: Colors.grey.shade50,
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.edit_outlined,
+                      color: Colors.grey.shade500,
+                      size: 20,
+                    ),
+                    const SizedBox(width: AppTheme.spacing12),
+                    Expanded(
+                      child: Text(
+                        'Share something to your neighbors…',
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.grey.shade400,
+                      size: 16,
+                    ),
+                  ],
                 ),
-                filled: true,
-                fillColor: Colors.grey.shade50,
               ),
             ),
           ),
