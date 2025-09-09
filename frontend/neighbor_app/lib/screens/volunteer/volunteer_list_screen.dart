@@ -208,6 +208,7 @@ class _VolunteerListScreenState extends State<VolunteerListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: "volunteer_fab",
         onPressed: () {
           // Use AppRouter for navigation
           AppRouter.pushNamed(context, AppRouter.volunteerCreate).then((_) {

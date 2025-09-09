@@ -127,9 +127,25 @@ class CommunityPostCard extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               
-              // Bottom meta row: Comments + Views
+              // Bottom meta row: Likes + Comments + Views
               Row(
                 children: [
+                  // Likes
+                  const Icon(
+                    Icons.favorite_outline,
+                    size: 16,
+                    color: Color(0xFFE91E63),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${post.likeCount} likes',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF1A1A1A),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  
                   // Comments
                   const Icon(
                     Icons.chat_bubble_outline,
@@ -138,7 +154,7 @@ class CommunityPostCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${post.comments} comments',
+                    '${post.commentCount} comments',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFF1A1A1A),
@@ -154,7 +170,7 @@ class CommunityPostCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${post.views} view',
+                    '${post.viewCount} views',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFF1A1A1A),

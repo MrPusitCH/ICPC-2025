@@ -83,6 +83,7 @@ class ActivityListScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: "activity_fab",
         onPressed: () {
           // Navigate to create activity
           AppRouter.pushNamed(context, AppRouter.activityCreate);

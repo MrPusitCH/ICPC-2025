@@ -46,33 +46,43 @@ class MockDataService {
 
   /// Get mock community posts
   static List<CommunityPost> getCommunityPosts() {
+    final now = DateTime.now();
     return [
-      const CommunityPost(
-        userName: 'Dang Hayai',
-        timeAgo: '2 hours ago',
+      CommunityPost(
+        postId: 1,
         title: 'Thank you for your support!',
-        body: 'I wanted to express my heartfelt gratitude to all my wonderful neighbors who helped me during my recent recovery. Your kindness and support mean the world to me. The meals you brought, the visits you made, and the warm wishes you shared have made this difficult time so much easier to bear.',
-        comments: 2,
-        views: 24,
-        avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
+        content: 'I wanted to express my heartfelt gratitude to all my wonderful neighbors who helped me during my recent recovery. Your kindness and support mean the world to me. The meals you brought, the visits you made, and the warm wishes you shared have made this difficult time so much easier to bear.',
+        authorId: 1,
+        authorName: 'Dang Hayai',
+        createdAt: now.subtract(const Duration(hours: 2)),
+        updatedAt: now.subtract(const Duration(hours: 2)),
+        commentCount: 2,
+        viewCount: 24,
+        authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
       ),
-      const CommunityPost(
-        userName: 'Sarah Johnson',
-        timeAgo: '5 hours ago',
+      CommunityPost(
+        postId: 2,
         title: 'Community Garden Update',
-        body: 'The community garden is looking beautiful this season! We have fresh tomatoes, herbs, and flowers ready for harvest. Everyone is welcome to come and pick some fresh produce. Please remember to bring your own containers and be mindful of the plants.',
-        comments: 5,
-        views: 18,
-        avatarUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face',
+        content: 'The community garden is looking beautiful this season! We have fresh tomatoes, herbs, and flowers ready for harvest. Everyone is welcome to come and pick some fresh produce. Please remember to bring your own containers and be mindful of the plants.',
+        authorId: 2,
+        authorName: 'Sarah Johnson',
+        createdAt: now.subtract(const Duration(hours: 5)),
+        updatedAt: now.subtract(const Duration(hours: 5)),
+        commentCount: 5,
+        viewCount: 18,
+        authorAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face',
       ),
-      const CommunityPost(
-        userName: 'Mike Chen',
-        timeAgo: '1 day ago',
+      CommunityPost(
+        postId: 3,
         title: 'Lost Cat - Please Help!',
-        body: 'Our beloved cat Whiskers has been missing since yesterday evening. He\'s a friendly orange tabby with white paws. If you see him or have any information, please contact me immediately. We\'re very worried and miss him dearly.',
-        comments: 8,
-        views: 42,
-        avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+        content: 'Our beloved cat Whiskers has been missing since yesterday evening. He\'s a friendly orange tabby with white paws. If you see him or have any information, please contact me immediately. We\'re very worried and miss him dearly.',
+        authorId: 3,
+        authorName: 'Mike Chen',
+        createdAt: now.subtract(const Duration(days: 1)),
+        updatedAt: now.subtract(const Duration(days: 1)),
+        commentCount: 8,
+        viewCount: 42,
+        authorAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
       ),
     ];
   }

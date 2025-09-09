@@ -20,7 +20,7 @@ class MainAppScreen extends StatefulWidget {
 class _MainAppScreenState extends State<MainAppScreen> {
   /// Currently selected tab index (0-4)
   /// 0: Volunteer, 1: Activity, 2: Community, 3: News, 4: Profile
-  int _selectedIndex = 3; // Default to News tab (now index 3 after removing notifications)
+  int _selectedIndex = 2; // Default to Community tab
 
   /// List of all main app screens in the same order as bottom navigation items
   /// IndexedStack maintains the state of each screen when switching tabs

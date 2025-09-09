@@ -96,14 +96,17 @@ class ApiService {
     await Future.delayed(const Duration(milliseconds: 1000));
     
     // Return mock created post
-    return const CommunityPost(
-      userName: 'Current User',
-      timeAgo: 'just now',
+    return CommunityPost(
+      postId: DateTime.now().millisecondsSinceEpoch,
       title: 'New Post',
-      body: 'This is a new post created by the user.',
-      comments: 0,
-      views: 1,
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
+      content: 'This is a new post created by the user.',
+      authorId: 1,
+      authorName: 'Current User',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      commentCount: 0,
+      viewCount: 1,
+      authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
     );
   }
 
