@@ -64,6 +64,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, content, author_id, media } = body;
 
+    console.log('Creating post with data:', { title, content, author_id, media });
+
     if (!title || !content || !author_id) {
       return addCors(NextResponse.json(
         { success: false, error: 'Title, content, and author_id are required' },
@@ -72,6 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the post
+    console.log('Creating post with media:', media);
     const post = await prisma.communityPost.create({
       data: {
         title,
@@ -101,6 +104,12 @@ export async function POST(request: NextRequest) {
           }
         }
       }
+    });
+
+    console.log('Post created successfully:', { 
+      post_id: post.post_id, 
+      title: post.title, 
+      media_count: post.media?.length || 0 
     });
 
     return addCors(NextResponse.json({

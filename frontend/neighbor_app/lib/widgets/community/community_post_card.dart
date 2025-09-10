@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../models/community_post.dart';
 
@@ -47,8 +48,21 @@ class CommunityPostCard extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 20,
-                          backgroundImage: NetworkImage(post.avatarUrl),
+                          backgroundImage: post.authorAvatar != null 
+                            ? NetworkImage(post.authorAvatar!)
+                            : null,
                           backgroundColor: Colors.grey.shade200,
+                          child: post.authorAvatar == null 
+                            ? Text(
+                                post.authorName.isNotEmpty 
+                                  ? post.authorName[0].toUpperCase()
+                                  : 'U',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : null,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -56,7 +70,7 @@ class CommunityPostCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                post.userName,
+                                post.authorName,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -118,6 +132,28 @@ class CommunityPostCard extends StatelessWidget {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
+              
+              // Media display
+              if (post.media.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _buildMediaDisplay(post.media),
+              ] else if (post.title.toLowerCase().contains('photo') || post.title.toLowerCase().contains('image')) ...[
+                // Debug: Show when we expect media but don't have it
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.shade300),
+                  ),
+                  child: Text(
+                    'DEBUG: Expected media for "${post.title}" but found ${post.media.length} items',
+                    style: const TextStyle(fontSize: 12, color: Colors.orange),
+                  ),
+                ),
+              ],
+              
               const SizedBox(height: 16),
               
               // Dotted divider (using thin grey line)
@@ -181,6 +217,79 @@ class CommunityPostCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMediaDisplay(List<PostMedia> media) {
+    print('Building media display for ${media.length} media items');
+    if (media.isEmpty) return const SizedBox.shrink();
+    
+    // Use the actual media URL from the database
+    String imageUrl = media.first.fileUrl;
+    print('Media URL: $imageUrl');
+    
+    // Check if it's a local file path or server/network URL
+    bool isLocalFile = (imageUrl.startsWith('/') && !imageUrl.startsWith('http')) || imageUrl.contains('\\');
+    bool isBlobUrl = imageUrl.startsWith('blob:');
+    
+    // For web platform, always use Image.network for blob URLs
+    if (isBlobUrl) {
+      isLocalFile = false;
+    }
+    
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.grey.shade100,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: isLocalFile 
+          ? Image.file(
+              File(imageUrl),
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                print('Post card local image load error for $imageUrl: $error');
+                return Container(
+                  color: Colors.grey.shade200,
+                  child: const Icon(
+                    Icons.image_not_supported,
+                    color: Colors.grey,
+                    size: 48,
+                  ),
+                );
+              },
+            )
+          : Image.network(
+              isBlobUrl 
+                ? imageUrl  // Blob URL (for web)
+                : imageUrl.startsWith('/') 
+                  ? 'http://localhost:3000$imageUrl'  // Server URL
+                  : imageUrl,  // External URL
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                print('Post card network image load error for $imageUrl: $error');
+                return Container(
+                  color: Colors.grey.shade200,
+                  child: const Icon(
+                    Icons.image_not_supported,
+                    color: Colors.grey,
+                    size: 48,
+                  ),
+                );
+              },
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  color: Colors.grey.shade200,
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              },
+            ),
       ),
     );
   }

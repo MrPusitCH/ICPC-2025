@@ -12,10 +12,11 @@ export async function OPTIONS(request: NextRequest) {
 // DELETE /api/community/comments/[id] - Delete a comment
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const commentId = parseInt(params.id);
+    const { id } = await params;
+    const commentId = parseInt(id);
 
     if (isNaN(commentId)) {
       return addCors(NextResponse.json(
@@ -60,3 +61,4 @@ export async function DELETE(
     ));
   }
 }
+

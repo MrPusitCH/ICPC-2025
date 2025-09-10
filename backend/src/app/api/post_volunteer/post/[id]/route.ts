@@ -15,10 +15,11 @@ export async function OPTIONS() {
 // GET /api/post/[id] - Get a single post by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const postId = parseInt(params.id);
+    const { id } = await params;
+    const postId = parseInt(id);
     
     if (isNaN(postId)) {
       return addCors(NextResponse.json(
@@ -70,10 +71,11 @@ export async function GET(
 // PUT /api/post/[id] - Update a post by ID
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const postId = parseInt(params.id);
+    const { id } = await params;
+    const postId = parseInt(id);
     
     if (isNaN(postId)) {
       return addCors(NextResponse.json(

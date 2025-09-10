@@ -48,8 +48,8 @@ class CommunityPost {
       updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.now(),
       isPublished: json['is_published'] ?? true,
       viewCount: json['view_count'] ?? 0,
-      likeCount: json['like_count'] ?? 0,
-      commentCount: json['comment_count'] ?? json['_count']?['comments'] ?? 0,
+      likeCount: json['_count']?['likes'] ?? json['like_count'] ?? 0,
+      commentCount: json['_count']?['comments'] ?? json['comment_count'] ?? 0,
       media: (json['media'] as List<dynamic>?)
           ?.map((m) => PostMedia.fromJson(m))
           .toList() ?? [],

@@ -6,6 +6,9 @@ class AuthService {
   static const String baseUrl = 'http://localhost:3000/api';
   static const String _userIdKey = 'current_user_id';
   static const String _userTokenKey = 'user_token';
+  static const String _userRoleKey = 'current_user_role';
+  static const String _userNameKey = 'current_user_name';
+  static const String _userAvatarKey = 'current_user_avatar';
   
 
   static Future<Map<String, dynamic>?> login(String email, String password) async {
@@ -24,9 +27,15 @@ class AuthService {
         final user = data['data']?['user'];
         final token = data['data']?['token'];
         
-        // Store user ID and token for future use
+        // Store user ID, role, token, name, and avatar for future use
         if (user != null && user['user_id'] != null) {
-          await _storeUserSession(user['user_id'], token);
+          await _storeUserSession(
+            user['user_id'], 
+            token, 
+            user['role'],
+            user['name'],
+            user['profile']?['profile_image_url']
+          );
         }
         
         return {
@@ -94,11 +103,20 @@ class AuthService {
   }
 
   /// Store user session data
-  static Future<void> _storeUserSession(int userId, String? token) async {
+  static Future<void> _storeUserSession(int userId, String? token, String? role, String? name, String? avatar) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_userIdKey, userId);
     if (token != null) {
       await prefs.setString(_userTokenKey, token);
+    }
+    if (role != null) {
+      await prefs.setString(_userRoleKey, role);
+    }
+    if (name != null) {
+      await prefs.setString(_userNameKey, name);
+    }
+    if (avatar != null) {
+      await prefs.setString(_userAvatarKey, avatar);
     }
   }
 
@@ -124,12 +142,54 @@ class AuthService {
     }
   }
 
+  /// Get current user role from stored session
+  static Future<String?> getCurrentUserRole() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_userRoleKey);
+    } catch (e) {
+      print('Error getting current user role: $e');
+      return null;
+    }
+  }
+
+  /// Check if current user is admin
+  static Future<bool> isCurrentUserAdmin() async {
+    final role = await getCurrentUserRole();
+    return role == 'ADMIN';
+  }
+
+  /// Get current user's display name
+  static Future<String> getCurrentUserName() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('current_user_name') ?? 'User';
+    } catch (e) {
+      print('Error getting current user name: $e');
+      return 'User';
+    }
+  }
+
+  /// Get current user's avatar URL
+  static Future<String?> getCurrentUserAvatar() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('current_user_avatar');
+    } catch (e) {
+      print('Error getting current user avatar: $e');
+      return null;
+    }
+  }
+
   /// Clear user session (logout)
   static Future<void> clearUserSession() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_userIdKey);
       await prefs.remove(_userTokenKey);
+      await prefs.remove(_userRoleKey);
+      await prefs.remove(_userNameKey);
+      await prefs.remove(_userAvatarKey);
     } catch (e) {
       print('Error clearing user session: $e');
     }

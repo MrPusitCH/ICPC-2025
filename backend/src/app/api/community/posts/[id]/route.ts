@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { addCors } from '@/config/cors';
+import { getCurrentUser, canDeletePost, isAdmin } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
@@ -12,10 +13,11 @@ export async function OPTIONS(request: NextRequest) {
 // GET /api/community/posts/[id] - Get a specific community post
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const postId = parseInt(params.id);
+    const { id } = await params;
+    const postId = parseInt(id);
 
     if (isNaN(postId)) {
       return addCors(NextResponse.json(
@@ -90,10 +92,11 @@ export async function GET(
 // PUT /api/community/posts/[id] - Update a community post
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const postId = parseInt(params.id);
+    const { id } = await params;
+    const postId = parseInt(id);
     const body = await request.json();
     const { title, content, is_published } = body;
 
@@ -144,10 +147,11 @@ export async function PUT(
 // DELETE /api/community/posts/[id] - Delete a community post
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const postId = parseInt(params.id);
+    const { id } = await params;
+    const postId = parseInt(id);
 
     if (isNaN(postId)) {
       return addCors(NextResponse.json(
@@ -156,13 +160,44 @@ export async function DELETE(
       ));
     }
 
+    // Get the post to check author and get user info
+    const post = await prisma.communityPost.findUnique({
+      where: { post_id: postId },
+      include: {
+        author: true
+      }
+    });
+
+    if (!post) {
+      return addCors(NextResponse.json(
+        { success: false, error: 'Post not found' },
+        { status: 404 }
+      ));
+    }
+
+    // Get current user from Authorization header
+    const authHeader = request.headers.get('authorization');
+    const currentUser = await getCurrentUser(authHeader);
+
+    // Check if user is authorized to delete the post
+    if (!canDeletePost(currentUser, post.author_id)) {
+      return addCors(NextResponse.json(
+        { 
+          success: false, 
+          error: 'Unauthorized: You can only delete your own posts unless you are an admin' 
+        },
+        { status: 403 }
+      ));
+    }
+
+    // Delete the post
     await prisma.communityPost.delete({
       where: { post_id: postId }
     });
 
     return addCors(NextResponse.json({
       success: true,
-      message: 'Post deleted successfully'
+      message: isAdmin(currentUser) ? 'Post deleted by admin' : 'Post deleted successfully'
     }));
   } catch (error) {
     console.error('Error deleting community post:', error);

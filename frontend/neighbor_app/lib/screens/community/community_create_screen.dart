@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../router/app_router.dart';
 import '../../services/community_api_service.dart';
+import '../../services/auth_service.dart';
 
 class CommunityCreateScreen extends StatefulWidget {
   const CommunityCreateScreen({super.key});
@@ -70,8 +71,15 @@ class _CommunityCreateScreenState extends State<CommunityCreateScreen> {
       // Prepare media data
       List<Map<String, dynamic>>? mediaData;
       if (_selectedImage != null) {
-        // Upload media first (mock implementation)
+        print('=== UPLOAD PROCESS START ===');
+        print('Selected image path: ${_selectedImage!.path}');
+        print('File exists: ${await _selectedImage!.exists()}');
+        print('File size: ${await _selectedImage!.length()}');
+        
+        // Upload media first
         final uploadResult = await CommunityApiService.uploadMedia(_selectedImage!);
+        print('Upload result: $uploadResult');
+        
         if (uploadResult['success']) {
           mediaData = [{
             'file_url': uploadResult['file_url'],
@@ -80,16 +88,27 @@ class _CommunityCreateScreenState extends State<CommunityCreateScreen> {
             'file_size': uploadResult['file_size'],
             'mime_type': uploadResult['mime_type'],
           }];
+          print('Media data prepared: $mediaData');
+        } else {
+          print('Upload failed: ${uploadResult['error']}');
         }
+        print('=== UPLOAD PROCESS END ===');
+      } else {
+        print('No image selected for upload');
       }
 
+      // Get current user ID
+      final currentUserId = await AuthService.getCurrentUserId();
+      
       // Create post
+      print('Creating post with media: $mediaData');
       final result = await CommunityApiService.createPost(
         title: _titleController.text.trim(),
         content: _messageController.text.trim(),
-        authorId: 1, // TODO: Get from user session
+        authorId: currentUserId ?? 1,
         media: mediaData,
       );
+      print('Post creation result: $result');
 
       // Hide loading indicator
       Navigator.of(context).pop();

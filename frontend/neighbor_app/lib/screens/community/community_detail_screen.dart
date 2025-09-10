@@ -1,11 +1,13 @@
 /// Community detail screen for the Neighbor app
 /// Shows detailed information about a specific community post
 library;
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 import '../../router/app_router.dart';
 import '../../models/community_post.dart';
 import '../../services/community_api_service.dart';
+import '../../services/auth_service.dart';
 
 class CommunityDetailScreen extends StatefulWidget {
   final VoidCallback? onPostDeleted;
@@ -30,16 +32,24 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
   final TextEditingController _commentController = TextEditingController();
   bool _isSubmittingComment = false;
   
-  // Current user ID (in real app, get from auth service)
-  final int _currentUserId = 1;
+  // Current user info
+  int? _currentUserId;
+  bool _isAdmin = false;
 
   @override
   void initState() {
     super.initState();
-    // Delay loading until after the widget is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadPost();
-    });
+    // Load user info and post
+    _loadUserAndPost();
+  }
+
+  Future<void> _loadUserAndPost() async {
+    // Load current user info
+    _currentUserId = await AuthService.getCurrentUserId();
+    _isAdmin = await AuthService.isCurrentUserAdmin();
+    
+    // Load the post
+    _loadPost();
   }
 
   @override
@@ -77,25 +87,31 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
 
       if (result['success'] && result['post'] != null) {
         print('Successfully loaded post: ${(result['post'] as CommunityPost).title}');
-        setState(() {
-          _post = result['post'] as CommunityPost;
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _post = result['post'] as CommunityPost;
+            _isLoading = false;
+          });
+        }
       } else {
         print('API returned error: ${result['error']}');
-        setState(() {
-          _hasError = true;
-          _errorMessage = result['error'] ?? 'Failed to load post';
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _hasError = true;
+            _errorMessage = result['error'] ?? 'Failed to load post';
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
       print('Exception caught: $e');
-      setState(() {
-        _hasError = true;
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -105,6 +121,10 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     final commentText = _commentController.text.trim();
     _commentController.clear();
 
+    // Get current user's name and avatar first
+    final currentUserName = await AuthService.getCurrentUserName();
+    final currentUserAvatar = await AuthService.getCurrentUserAvatar();
+    
     // Optimistically update UI immediately (like Facebook)
     setState(() {
       _isSubmittingComment = true;
@@ -112,9 +132,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       final newComment = CommunityComment(
         commentId: DateTime.now().millisecondsSinceEpoch, // Temporary ID
         postId: _post!.postId,
-        authorId: 1,
-        authorName: 'You', // Current user
-        authorAvatar: null,
+        authorId: _currentUserId ?? 1,
+        authorName: currentUserName,
+        authorAvatar: currentUserAvatar,
         content: commentText,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
@@ -142,7 +162,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     try {
       final result = await CommunityApiService.createComment(
         postId: _post!.postId,
-        authorId: 1, // TODO: Get from user session
+        authorId: _currentUserId ?? 1,
         content: commentText,
       );
 
@@ -258,7 +278,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     try {
       final result = await CommunityApiService.toggleLike(
         postId: _post!.postId,
-        userId: 1, // TODO: Get from user session
+        userId: _currentUserId ?? 1,
       );
 
       if (result['success']) {
@@ -502,12 +522,12 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
           onPressed: () => AppRouter.pop(context),
         ),
         actions: [
-          // Show delete button only if current user is the post author
-          if (_post != null && _post!.authorId == _currentUserId)
+          // Show delete button if current user is the post author OR if user is admin
+          if (_post != null && (_post!.authorId == _currentUserId || _isAdmin))
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
               onPressed: _deletePost,
-              tooltip: 'Delete Post',
+              tooltip: _isAdmin ? 'Delete Post (Admin)' : 'Delete Post',
             ),
         ],
       ),
@@ -619,31 +639,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
 
           // Media attachments
           if (_post!.media.isNotEmpty) ...[
-            Text(
-              'Attachments',
-              style: AppTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            ...(_post!.media.map((media) => Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                children: [
-                  Icon(
-                    media.fileType == 'image' ? Icons.image : Icons.attach_file,
-                    size: 20,
-                    color: Colors.grey.shade600,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      media.fileName,
-                      style: AppTheme.bodySmall,
-                    ),
-                  ),
-                ],
-              ),
-            ))),
             const SizedBox(height: 16),
+            _buildMediaDisplay(_post!.media),
           ],
 
           // Stats
@@ -750,8 +747,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
                           color: Colors.grey.shade600,
                         ),
                       ),
-                      // Show delete button only if current user is the comment author
-                      if (comment.authorId == _currentUserId) ...[
+                      // Show delete button if current user is the comment author OR if user is admin
+                      if (comment.authorId == _currentUserId || _isAdmin) ...[
                         const SizedBox(width: 8),
                         GestureDetector(
                           onTap: () => _deleteComment(comment.commentId),
@@ -854,6 +851,77 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     } else {
       return 'just now';
     }
+  }
+
+  Widget _buildMediaDisplay(List<PostMedia> media) {
+    if (media.isEmpty) return const SizedBox.shrink();
+    
+    // Use the actual media URL from the database
+    String imageUrl = media.first.fileUrl;
+    
+    // Check if it's a local file path or server/network URL
+    bool isLocalFile = (imageUrl.startsWith('/') && !imageUrl.startsWith('http')) || imageUrl.contains('\\');
+    bool isBlobUrl = imageUrl.startsWith('blob:');
+    
+    // For web platform, always use Image.network for blob URLs
+    if (isBlobUrl) {
+      isLocalFile = false;
+    }
+    
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.grey.shade100,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: isLocalFile 
+          ? Image.file(
+              File(imageUrl),
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                print('Detail screen local image load error for $imageUrl: $error');
+                return Container(
+                  color: Colors.grey.shade200,
+                  child: const Icon(
+                    Icons.image_not_supported,
+                    color: Colors.grey,
+                    size: 48,
+                  ),
+                );
+              },
+            )
+          : Image.network(
+              isBlobUrl 
+                ? imageUrl  // Blob URL (for web)
+                : imageUrl.startsWith('/') 
+                  ? 'http://localhost:3000$imageUrl'  // Server URL
+                  : imageUrl,  // External URL
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                print('Detail screen network image load error for $imageUrl: $error');
+                return Container(
+                  color: Colors.grey.shade200,
+                  child: const Icon(
+                    Icons.image_not_supported,
+                    color: Colors.grey,
+                    size: 48,
+                  ),
+                );
+              },
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  color: Colors.grey.shade200,
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              },
+            ),
+      ),
+    );
   }
 }
 

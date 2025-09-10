@@ -6,17 +6,18 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/community_post.dart';
+import 'auth_service.dart';
 
 class CommunityApiService {
   // TODO: Replace with your actual backend URL
   static const String baseUrl = 'http://localhost:3000/api/community';
   
   // Helper method to get headers
-  static Map<String, String> _getHeaders() {
+  static Future<Map<String, String>> _getHeaders() async {
+    final token = await AuthService.getCurrentUserToken();
     return {
       'Content-Type': 'application/json',
-      // TODO: Add authentication token when available
-      // 'Authorization': 'Bearer $token',
+      if (token != null) 'Authorization': 'Bearer $token',
     };
   }
 
@@ -48,7 +49,7 @@ class CommunityApiService {
       // Add timeout and better error handling
       final response = await http.get(
         Uri.parse(url),
-        headers: _getHeaders(),
+        headers: await _getHeaders(),
       ).timeout(
         const Duration(seconds: 10),
         onTimeout: () {
@@ -91,7 +92,7 @@ class CommunityApiService {
       
       // Fallback to mock data when API is not available
       print('Falling back to mock data...');
-      final mockPosts = _getMockPosts();
+      final mockPosts = await _getMockPosts();
       print('Generated ${mockPosts.length} mock posts');
       return {
         'success': true,
@@ -108,14 +109,16 @@ class CommunityApiService {
   }
 
   /// Mock data fallback
-  static List<CommunityPost> _getMockPosts() {
+  static Future<List<CommunityPost>> _getMockPosts() async {
     final now = DateTime.now();
+    final currentUserId = await AuthService.getCurrentUserId();
+    
     return [
       CommunityPost(
         postId: 1,
         title: 'Welcome to our neighborhood!',
         content: 'Hello everyone! I\'m new to the area and wanted to introduce myself. Looking forward to meeting all of you and being part of this wonderful community.',
-        authorId: 1,
+        authorId: currentUserId ?? 1,
         authorName: 'Dang Hayai',
         createdAt: now.subtract(const Duration(hours: 2)),
         updatedAt: now.subtract(const Duration(hours: 2)),
@@ -161,7 +164,7 @@ class CommunityApiService {
       
       final response = await http.get(
         Uri.parse(url),
-        headers: _getHeaders(),
+        headers: await _getHeaders(),
       );
 
       print('Response status: ${response.statusCode}');
@@ -175,6 +178,8 @@ class CommunityApiService {
         print('Attempting to parse CommunityPost from: ${data['data']}');
         final post = CommunityPost.fromJson(data['data']);
         print('Successfully parsed post: ${post.title}');
+        
+        
         return {
           'success': data['success'] ?? false,
           'post': post,
@@ -191,7 +196,7 @@ class CommunityApiService {
       print('Error type: ${e.runtimeType}');
       // Fallback to mock data when API is not available
       print('Falling back to mock data for post $postId...');
-      final mockPosts = _getMockPosts();
+      final mockPosts = await _getMockPosts();
       final post = mockPosts.firstWhere(
         (p) => p.postId == postId,
         orElse: () => mockPosts.first,
@@ -229,7 +234,7 @@ class CommunityApiService {
       
       final response = await http.post(
         Uri.parse(url),
-        headers: _getHeaders(),
+        headers: await _getHeaders(),
         body: json.encode(requestBody),
       ).timeout(
         const Duration(seconds: 10),
@@ -266,6 +271,7 @@ class CommunityApiService {
       // Fallback to mock data when API is not available
       print('Falling back to mock data for new post...');
       final now = DateTime.now();
+      final currentUserId = await AuthService.getCurrentUserId();
       final newPost = CommunityPost(
         postId: now.millisecondsSinceEpoch,
         title: title,
@@ -296,7 +302,7 @@ class CommunityApiService {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/posts/$postId'),
-        headers: _getHeaders(),
+        headers: await _getHeaders(),
         body: json.encode({
           if (title != null) 'title': title,
           if (content != null) 'content': content,
@@ -324,7 +330,7 @@ class CommunityApiService {
     try {
       final response = await http.delete(
         Uri.parse('$baseUrl/posts/$postId'),
-        headers: _getHeaders(),
+        headers: await _getHeaders(),
       );
 
       final data = _handleResponse(response);
@@ -370,7 +376,7 @@ class CommunityApiService {
       
       final response = await http.post(
         Uri.parse(url),
-        headers: _getHeaders(),
+        headers: await _getHeaders(),
         body: json.encode(requestBody),
       ).timeout(
         const Duration(seconds: 10),
@@ -434,7 +440,7 @@ class CommunityApiService {
       
       final response = await http.post(
         Uri.parse(url),
-        headers: _getHeaders(),
+        headers: await _getHeaders(),
         body: json.encode(requestBody),
       ).timeout(
         const Duration(seconds: 10),
@@ -475,7 +481,7 @@ class CommunityApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/likes?post_id=$postId&user_id=$userId'),
-        headers: _getHeaders(),
+        headers: await _getHeaders(),
       );
 
       final data = _handleResponse(response);
@@ -497,23 +503,140 @@ class CommunityApiService {
   // MEDIA UPLOAD (Mock implementation)
   // ============================================================================
 
-  /// Upload media file (mock implementation)
-  /// In a real app, this would upload to a file storage service
+  /// Upload media file to server
   static Future<Map<String, dynamic>> uploadMedia(File file) async {
     try {
-      // Simulate upload delay
-      await Future.delayed(const Duration(seconds: 2));
+      print('Uploading media file: ${file.path}');
       
-      // Mock response - in real app, this would return actual file URL
-      return {
-        'success': true,
-        'file_url': 'https://example.com/uploads/${file.path.split('/').last}',
-        'file_name': file.path.split('/').last,
-        'file_size': await file.length(),
-        'mime_type': 'image/jpeg', // You could detect this from file extension
-      };
+      // For web platform, we need to handle blob URLs differently
+      if (file.path.startsWith('blob:')) {
+        print('Detected blob URL, using web-compatible upload');
+        return await _uploadBlobFile(file);
+      }
+      
+      // Create multipart request
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('http://localhost:3000/api/upload'),
+      );
+      
+      // Don't set Content-Type header - let MultipartRequest handle it
+      // Only set Accept header
+      request.headers['Accept'] = 'application/json';
+      
+      // Add file to request with correct field name 'image'
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'image', // Changed from 'file' to 'image' to match backend
+          file.path,
+          filename: file.path.split('/').last,
+        ),
+      );
+      
+      print('Sending upload request to: ${request.url}');
+      
+      // Send request
+      final streamedResponse = await request.send().timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw Exception('Upload timeout');
+        },
+      );
+      
+      // Get response
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      print('Upload response status: ${response.statusCode}');
+      print('Upload response body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('Upload successful: $data');
+        return {
+          'success': true,
+          'file_url': data['url'], // Changed from 'file_url' to 'url' to match backend
+          'file_name': data['fileName'],
+          'file_size': data['fileSize'],
+          'mime_type': data['mimeType'],
+        };
+      } else {
+        print('Upload failed with status: ${response.statusCode}');
+        return {
+          'success': false,
+          'error': 'Upload failed: ${response.statusCode}',
+        };
+      }
     } catch (e) {
       print('Error uploading media: $e');
+      return {
+        'success': false,
+        'error': e.toString(),
+      };
+    }
+  }
+
+  /// Upload blob file (for web platform)
+  static Future<Map<String, dynamic>> _uploadBlobFile(File file) async {
+    try {
+      print('Uploading blob file for web platform');
+      
+      // For web blob URLs, we need to convert to bytes first
+      final bytes = await file.readAsBytes();
+      
+      // Create multipart request
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('http://localhost:3000/api/upload'),
+      );
+      
+      // Don't set Content-Type header - let MultipartRequest handle it
+      // Only set Accept header
+      request.headers['Accept'] = 'application/json';
+      
+      // Add file bytes to request
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'image',
+          bytes,
+          filename: 'image_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        ),
+      );
+      
+      print('Sending blob upload request to: ${request.url}');
+      
+      // Send request
+      final streamedResponse = await request.send().timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw Exception('Upload timeout');
+        },
+      );
+      
+      // Get response
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      print('Blob upload response status: ${response.statusCode}');
+      print('Blob upload response body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('Blob upload successful: $data');
+        return {
+          'success': true,
+          'file_url': data['url'],
+          'file_name': data['fileName'],
+          'file_size': data['fileSize'],
+          'mime_type': data['mimeType'],
+        };
+      } else {
+        print('Blob upload failed with status: ${response.statusCode}');
+        return {
+          'success': false,
+          'error': 'Upload failed: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('Error uploading blob file: $e');
       return {
         'success': false,
         'error': e.toString(),
@@ -536,7 +659,7 @@ class CommunityApiService {
       
       final response = await http.delete(
         Uri.parse(url),
-        headers: _getHeaders(),
+        headers: await _getHeaders(),
       ).timeout(
         const Duration(seconds: 10),
         onTimeout: () {

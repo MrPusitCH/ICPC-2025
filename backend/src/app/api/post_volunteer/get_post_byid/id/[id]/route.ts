@@ -7,10 +7,11 @@ const prisma = new PrismaClient();
 // GET /api/posts/get/id - Fetch single post by id with user info
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const postId = parseInt(params.id);
+    const { id } = await params;
+    const postId = parseInt(id);
 
     if (isNaN(postId)) {
       return NextResponse.json(

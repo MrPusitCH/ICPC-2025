@@ -5,6 +5,7 @@ import '../../theme/app_theme.dart';
 import '../../router/app_router.dart';
 import 'community_detail_screen.dart';
 import '../../services/community_api_service.dart';
+import '../../services/auth_service.dart';
 
 class CommunityFeedScreen extends StatefulWidget {
   const CommunityFeedScreen({super.key});
@@ -20,28 +21,42 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
   String _errorMessage = '';
   int _currentPage = 1;
   bool _hasMoreData = true;
+  int? _currentUserId;
 
   @override
   void initState() {
     super.initState();
-    _loadPosts();
+    _loadUserAndPosts();
+  }
+
+  Future<void> _loadUserAndPosts() async {
+    // Load current user ID first
+    _currentUserId = await AuthService.getCurrentUserId();
+    print('Current user ID: $_currentUserId');
+    
+    // Then load the posts
+    await _loadPosts();
   }
 
   Future<void> _loadPosts({bool refresh = false}) async {
     if (refresh) {
-      setState(() {
-        _currentPage = 1;
-        _hasMoreData = true;
-        _posts.clear();
-      });
+      if (mounted) {
+        setState(() {
+          _currentPage = 1;
+          _hasMoreData = true;
+          _posts.clear();
+        });
+      }
     }
 
     if (!_hasMoreData) return;
 
-    setState(() {
-      _isLoading = true;
-      _hasError = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _hasError = false;
+      });
+    }
 
     try {
       print('Loading posts...');
@@ -58,31 +73,37 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
         
         print('Successfully loaded ${newPosts.length} posts');
         
-        setState(() {
-          if (refresh) {
-            _posts = newPosts;
-          } else {
-            _posts.addAll(newPosts);
-          }
-          _hasMoreData = _currentPage < (pagination['totalPages'] ?? 1);
-          _currentPage++;
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            if (refresh) {
+              _posts = newPosts;
+            } else {
+              _posts.addAll(newPosts);
+            }
+            _hasMoreData = _currentPage < (pagination['totalPages'] ?? 1);
+            _currentPage++;
+            _isLoading = false;
+          });
+        }
       } else {
         print('API returned error: ${result['error']}');
-        setState(() {
-          _hasError = true;
-          _errorMessage = result['error'] ?? 'Failed to load posts';
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _hasError = true;
+            _errorMessage = result['error'] ?? 'Failed to load posts';
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
       print('Exception caught: $e');
-      setState(() {
-        _hasError = true;
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -117,7 +138,9 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
           // Navigate to create community post
           await AppRouter.pushNamed(context, AppRouter.communityCreate);
           // Refresh posts when returning from create screen
-          _refreshPosts();
+          if (mounted) {
+            _refreshPosts();
+          }
         },
         backgroundColor: AppTheme.primaryBlue,
         child: const Icon(
@@ -129,8 +152,6 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
   }
 
   Widget _buildPostsList() {
-    print('Building posts list. Loading: $_isLoading, Posts count: ${_posts.length}, Has error: $_hasError');
-    
     if (_isLoading && _posts.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -199,8 +220,6 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
       );
     }
 
-    print('Building ListView with ${_posts.length} posts');
-    
     return RefreshIndicator(
       onRefresh: _refreshPosts,
       child: ListView.builder(
@@ -234,19 +253,29 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
           print('Building post card for: ${post.title}');
           return CommunityPostCard(
             post: post,
-            onTap: () {
+            onTap: () async {
               // Navigate to community post detail with callback
-              Navigator.push(
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => CommunityDetailScreen(
-                    onPostDeleted: _refreshPosts,
+                    onPostDeleted: () {
+                      // Only refresh if the widget is still mounted
+                      if (mounted) {
+                        _refreshPosts();
+                      }
+                    },
                   ),
                   settings: RouteSettings(
                     arguments: {'postId': post.postId},
                   ),
                 ),
               );
+              // Refresh posts when returning from detail screen
+              // Only refresh if we actually have posts to avoid unnecessary API calls
+              if (mounted && _posts.isNotEmpty) {
+                _refreshPosts();
+              }
             },
           );
         },
