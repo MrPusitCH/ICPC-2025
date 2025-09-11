@@ -125,7 +125,7 @@ flutter build apk
 
 ## 📄 License
 
-MIT
+None
 
 <div align="center">
   <sub>Made with ❤️ for ICPC 2025</sub>
