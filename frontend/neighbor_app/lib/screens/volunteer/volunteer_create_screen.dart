@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../widgets/common/primary_button.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../services/posts_api_service.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/common/location_map_widget.dart';
+import '../../widgets/common/location_search_widget.dart';
 
 class VolunteerCreateScreen extends StatefulWidget {
   const VolunteerCreateScreen({super.key});
@@ -19,6 +22,10 @@ class _VolunteerCreateScreenState extends State<VolunteerCreateScreen> {
   final _rewardController = TextEditingController();
   
   bool _isLoading = false;
+  String? _selectedImagePath;
+  String? _selectedLocation;
+  double? _selectedLatitude;
+  double? _selectedLongitude;
 
   @override
   void dispose() {
@@ -52,6 +59,40 @@ class _VolunteerCreateScreenState extends State<VolunteerCreateScreen> {
     
     if (picked != null) {
       _timeController.text = picked.format(context);
+    }
+  }
+
+  void _selectPhoto() {
+    // Simulate photo selection
+    setState(() {
+      _selectedImagePath = 'sample_image.png';
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Photo selected (simulated)'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+  }
+
+  void _deletePhoto() {
+    setState(() {
+      _selectedImagePath = null;
+    });
+  }
+
+  void _onLocationSelected(LatLng position, String address) {
+    setState(() {
+      _selectedLocation = address;
+      _selectedLatitude = position.latitude;
+      _selectedLongitude = position.longitude;
+      _locationController.text = address;
+    });
+  }
+
+  void _onSearchLocationSelected(String address, double? lat, double? lng) {
+    if (lat != null && lng != null) {
+      _onLocationSelected(LatLng(lat, lng), address);
     }
   }
 
@@ -134,13 +175,13 @@ class _VolunteerCreateScreenState extends State<VolunteerCreateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7F9),
+      backgroundColor: AppTheme.lightBackground,
       appBar: AppBar(
         title: const Text(
-          'Create Request',
+          'Request Support',
           style: TextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
             color: Color(0xFF1A1A1A),
           ),
         ),
@@ -162,198 +203,236 @@ class _VolunteerCreateScreenState extends State<VolunteerCreateScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Form card
-              Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                                                 color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
+              // Title field
+              TextFormField(
+                controller: _titleController,
+                decoration: InputDecoration(
+                  labelText: 'Title *',
+                  hintText: 'Enter your request title',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Request Information',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A1A1A),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFF1E88E5)),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a title';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              
+              // Message field
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  labelText: 'Message *',
+                  hintText: 'Describe your request in detail',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFF1E88E5)),
+                  ),
+                  alignLabelWithHint: true,
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a message';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              
+              // Date and Time row
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _dateController,
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        labelText: 'Date *',
+                        hintText: 'Select date',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFF1E88E5)),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      
-                      // Title field
-                      TextFormField(
-                        controller: _titleController,
-                        decoration: InputDecoration(
-                          labelText: 'Title *',
-                          hintText: 'What help do you need?',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFF1E88E5)),
-                          ),
+                      onTap: _selectDate,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _timeController,
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        labelText: 'Time *',
+                        hintText: 'Select time',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a title';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      // Description field
-                      TextFormField(
-                        controller: _descriptionController,
-                        maxLines: 4,
-                        decoration: InputDecoration(
-                          labelText: 'Description *',
-                          hintText: 'Describe what help you need in detail...',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFF1E88E5)),
-                          ),
-                          alignLabelWithHint: true,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a description';
-                          }
-                          return null;
-                        },
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFF1E88E5)),
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      
-                      // Date and Time row
-                      Row(
+                      onTap: _selectTime,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              
+              // Reward field
+              TextFormField(
+                controller: _rewardController,
+                decoration: InputDecoration(
+                  labelText: 'Reward Point',
+                  hintText: 'Enter reward points',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFF1E88E5)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              // Photo upload section
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _selectPhoto,
+                    icon: const Icon(Icons.camera_alt, size: 18),
+                    label: const Text('photos'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey.shade100,
+                      foregroundColor: Colors.grey.shade700,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  if (_selectedImagePath != null) ...[
+                    const SizedBox(width: 12),
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: const Icon(Icons.image, color: Colors.grey),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _dateController,
-                              readOnly: true,
-                              decoration: InputDecoration(
-                                labelText: 'Date',
-                                hintText: 'Select date',
-                                suffixIcon: const Icon(Icons.calendar_today),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(color: Color(0xFF1E88E5)),
-                                ),
-                              ),
-                              onTap: _selectDate,
+                          Text(
+                            '...574-9F6B-E47AD907077F.png',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _timeController,
-                              readOnly: true,
-                              decoration: InputDecoration(
-                                labelText: 'Time',
-                                hintText: 'Select time',
-                                suffixIcon: const Icon(Icons.access_time),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.grey.shade300),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(color: Color(0xFF1E88E5)),
-                                ),
+                          TextButton(
+                            onPressed: _deletePhoto,
+                            child: const Text(
+                              'delete photo',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.red,
                               ),
-                              onTap: _selectTime,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      
-                      // Location field
-                      TextFormField(
-                        controller: _locationController,
-                        decoration: InputDecoration(
-                          labelText: 'Location (Optional)',
-                          hintText: 'Where do you need help?',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFF1E88E5)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      // Reward field
-                      TextFormField(
-                        controller: _rewardController,
-                        decoration: InputDecoration(
-                          labelText: 'Reward (Optional)',
-                          hintText: 'e.g., ฿500',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFF1E88E5)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 16),
+              
+              // Location search
+              LocationSearchWidget(
+                initialValue: _selectedLocation,
+                hintText: 'Search for a location...',
+                onLocationSelected: _onSearchLocationSelected,
+              ),
+              const SizedBox(height: 20),
+              
+              // Map display
+              LocationMapWidget(
+                height: 200,
+                title: 'Selected Location',
+                isSelectable: true,
+                initialPosition: _selectedLatitude != null && _selectedLongitude != null
+                    ? LatLng(_selectedLatitude!, _selectedLongitude!)
+                    : null,
+                initialAddress: _selectedLocation,
+                onLocationSelected: _onLocationSelected,
               ),
               const SizedBox(height: 24),
               
               // Submit button
-              PrimaryButton(
-                text: _isLoading ? 'Creating...' : 'Create Request',
-                onPressed: _isLoading ? null : _submitForm,
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _submitForm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4FC3F7),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    _isLoading ? 'Creating...' : 'Send your post',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 32),
             ],
@@ -363,3 +442,4 @@ class _VolunteerCreateScreenState extends State<VolunteerCreateScreen> {
     );
   }
 }
+

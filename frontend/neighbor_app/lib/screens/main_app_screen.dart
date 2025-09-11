@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
+import '../widgets/common/custom_bottom_navigation.dart';
 import 'volunteer/volunteer_list_screen.dart';
 import 'activity/activity_list_screen.dart';
 import 'community/community_feed_screen.dart';
@@ -20,7 +20,7 @@ class MainAppScreen extends StatefulWidget {
 class _MainAppScreenState extends State<MainAppScreen> {
   /// Currently selected tab index (0-4)
   /// 0: Volunteer, 1: Activity, 2: Community, 3: News, 4: Profile
-  int _selectedIndex = 2; // Default to Community tab
+  int _selectedIndex = 0; // Default to Volunteer tab
 
   /// List of all main app screens in the same order as bottom navigation items
   /// IndexedStack maintains the state of each screen when switching tabs
@@ -32,106 +32,72 @@ class _MainAppScreenState extends State<MainAppScreen> {
     const ProfileScreen(),
   ];
 
+  /// Get the title for the current tab
+  String _getAppBarTitle() {
+    switch (_selectedIndex) {
+      case 0:
+        return 'Volunteer';
+      case 1:
+        return 'Activity';
+      case 2:
+        return 'Community';
+      case 3:
+        return 'News';
+      case 4:
+        return 'Profile';
+      default:
+        return 'Volunteer';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          _getAppBarTitle(),
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: const Color(0xFF4FC3F7), // Light blue background
+        elevation: 0,
+        centerTitle: true,
+        automaticallyImplyLeading: false, // Remove back button
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.menu,
+              color: Colors.white,
+              size: 24,
+            ),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Menu pressed'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       // Use IndexedStack to maintain state across tab switches
       // Only the selected screen is built and displayed
       body: IndexedStack(
         index: _selectedIndex,
         children: _screens,
       ),
-      // Bottom navigation bar for main app sections
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
+      // Custom bottom navigation bar for main app sections
+      bottomNavigationBar: CustomBottomNavigation(
+        selectedIndex: _selectedIndex,
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
           });
         },
-        // Theme colors for navigation items
-        selectedItemColor: AppTheme.primaryBlue,
-        unselectedItemColor: AppTheme.greyText,
-        selectedLabelStyle: AppTheme.labelSmall.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-        unselectedLabelStyle: AppTheme.labelSmall,
-        backgroundColor: AppTheme.white,
-        elevation: 8,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.volunteer_activism_outlined, size: 24),
-            activeIcon: Icon(Icons.volunteer_activism, size: 24),
-            label: 'Volunteer',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.event_outlined, size: 24),
-            activeIcon: Icon(Icons.event, size: 24),
-            label: 'Activity',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline, size: 24),
-            activeIcon: Icon(Icons.people, size: 24),
-            label: 'Community',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.newspaper_outlined, size: 24),
-            activeIcon: Icon(Icons.newspaper, size: 24),
-            label: 'News',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline, size: 24),
-            activeIcon: Icon(Icons.person, size: 24),
-            label: 'Profile',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class PlaceholderScreen extends StatelessWidget {
-  final String title;
-
-  const PlaceholderScreen({
-    super.key,
-    required this.title,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.lightBackground,
-      appBar: AppBar(
-        title: Text(
-          title,
-          style: AppTheme.titleMedium,
-        ),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.construction,
-              size: 64,
-              color: AppTheme.greyText,
-            ),
-            const SizedBox(height: AppTheme.spacing16),
-            Text(
-              '$title Screen',
-              style: AppTheme.titleLarge,
-            ),
-            const SizedBox(height: AppTheme.spacing8),
-            Text(
-              'Coming Soon',
-              style: AppTheme.bodyMedium.copyWith(
-                color: AppTheme.greyText,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
