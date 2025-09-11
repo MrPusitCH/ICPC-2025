@@ -61,198 +61,201 @@ class _VolunteerDetailScreenState extends State<VolunteerDetailScreen> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(AppTheme.spacing16),
-            child: Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppTheme.spacing20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title section
+            const Text(
+              'Title',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A1A),
               ),
-              child: Container(
-                padding: const EdgeInsets.all(AppTheme.spacing20),
-                decoration: BoxDecoration(
-                  color: AppTheme.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title section
-                    const Text(
-                      'Title',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacing8),
-                    Text(
-                      widget.volunteer.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacing16),
-                    
-                    // Description section
-                    const Text(
-                      'Description',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacing8),
-                    Text(
-                      widget.volunteer.description,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF1A1A1A),
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacing16),
-                    
-                    // Date and Time section
-                    const Text(
-                      'Date and Time',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacing8),
-                    Text(
-                      widget.volunteer.dateTime,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacing16),
-                    
-                    // Rewards section
-                    const Text(
-                      'Rewards',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacing8),
-                    Text(
-                      widget.volunteer.reward,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacing16),
-                    
-                    // Place section
-                    const Text(
-                      'Place',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacing8),
-                    Text(
-                      '39 หมู่ที่ 1 Rangsit - Nakhon Nayok Rd, Khlong Hok, Khlong Luang District, Pathum Thani 12110',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const SizedBox(height: AppTheme.spacing16),
-                    
-                    // Map section
-                    LocationMapWidget(
-                      height: 200,
-                      title: 'Request Location',
-                      isSelectable: false,
-                      initialPosition: const LatLng(13.7563, 100.5018), // Bangkok coordinates as default
-                      initialAddress: '39 หมู่ที่ 1 Rangsit - Nakhon Nayok Rd, Khlong Hok, Khlong Luang District, Pathum Thani 12110',
-                    ),
-                    const SizedBox(height: AppTheme.spacing20),
-                    
-                    // Posted by section
-                    Row(
-                      children: [
-                        const Text(
-                          'Posted by :',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1A1A1A),
-                          ),
-                        ),
-                        const SizedBox(width: AppTheme.spacing8),
-                        CircleAvatar(
-                          radius: 16,
-                          backgroundImage: NetworkImage(widget.volunteer.avatarUrl),
-                        ),
-                        const SizedBox(width: AppTheme.spacing8),
-                        Text(
-                          widget.volunteer.requesterName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Color(0xFF1A1A1A),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppTheme.spacing20),
-                    
-                    // Confirm and Support button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Confirm and Support button pressed!'),
-                              backgroundColor: AppTheme.primaryBlue,
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4FC3F7), // Light blue
-                          foregroundColor: AppTheme.white,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppTheme.spacing12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-                          ),
-                        ),
-                        child: const Text(
-                          'Confirm and Support',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+            ),
+            const SizedBox(height: AppTheme.spacing8),
+            Text(
+              widget.volunteer.title,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Color(0xFF1A1A1A),
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacing20),
+            
+            // Description section
+            const Text(
+              'Description',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A1A),
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacing8),
+            Text(
+              widget.volunteer.description,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Color(0xFF1A1A1A),
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacing20),
+            
+            // Details section
+            const Text(
+              'Details',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A1A),
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacing12),
+            
+            // Date and Time
+            _buildDetailRow(
+              label: 'Date and Time',
+              value: widget.volunteer.dateTime,
+            ),
+            const SizedBox(height: AppTheme.spacing16),
+            
+            // Rewards (fix typo from "Rewords" to "Rewards")
+            _buildDetailRow(
+              label: 'Rewards',
+              value: widget.volunteer.reward,
+            ),
+            const SizedBox(height: AppTheme.spacing16),
+            
+            // Place
+            _buildDetailRow(
+              label: 'Place',
+              value: '39 หมู่ที่ 1 Rangsit - Nakhon Nayok Rd, Khlong Hok, Khlong Luang District, Pathum Thani 12110',
+            ),
+            const SizedBox(height: AppTheme.spacing20),
+            
+            // Map section
+            Container(
+              height: 200,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LocationMapWidget(
+                  height: 200,
+                  title: 'Request Location',
+                  isSelectable: false,
+                  initialPosition: const LatLng(13.7563, 100.5018), // Bangkok coordinates as default
+                  initialAddress: '39 หมู่ที่ 1 Rangsit - Nakhon Nayok Rd, Khlong Hok, Khlong Luang District, Pathum Thani 12110',
                 ),
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: AppTheme.spacing20),
+            
+            // Posted by section
+            Row(
+              children: [
+                const Text(
+                  'Posted by :',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                ),
+                const SizedBox(width: AppTheme.spacing8),
+                CircleAvatar(
+                  radius: 16,
+                  backgroundImage: NetworkImage(widget.volunteer.avatarUrl),
+                ),
+                const SizedBox(width: AppTheme.spacing8),
+                Text(
+                  widget.volunteer.requesterName,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTheme.spacing20),
+            
+            // Confirm and Support button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Confirm and Support button pressed!'),
+                      backgroundColor: AppTheme.primaryBlue,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4FC3F7), // Light blue
+                  foregroundColor: AppTheme.white,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppTheme.spacing12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Confirm and Support',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacing20),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildDetailRow({
+    required String label,
+    required String value,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1A1A1A),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Color(0xFF1A1A1A),
+            height: 1.3,
+          ),
+        ),
+      ],
     );
   }
 }
