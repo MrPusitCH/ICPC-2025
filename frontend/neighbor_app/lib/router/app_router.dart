@@ -11,6 +11,7 @@ import '../screens/activity/activity_create_screen.dart';
 import '../screens/community/community_detail_screen.dart';
 import '../screens/community/community_create_screen.dart';
 import '../screens/news/news_detail_screen.dart';
+import '../screens/news/news_create_screen.dart';
 import '../screens/profile/profile_edit_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/volunteer/volunteer_detail_screen.dart';
@@ -45,6 +46,7 @@ class AppRouter {
   
   /// News-related routes
   static const String newsDetail = '/news/detail';
+  static const String newsCreate = '/news/create';
   
   /// Profile-related routes
   static const String profileEdit = '/profile/edit';
@@ -79,6 +81,7 @@ class AppRouter {
     
     // News routes
     newsDetail: (context) => const NewsDetailScreen(),
+    newsCreate: (context) => const NewsCreateScreen(),
     
     // Profile routes
     profileEdit: (context) => const ProfileEditScreen(),
