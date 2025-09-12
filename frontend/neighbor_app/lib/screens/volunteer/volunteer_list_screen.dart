@@ -4,6 +4,7 @@ import '../../theme/app_theme.dart';
 import '../../models/volunteer_item.dart';
 import '../../widgets/common/location_map_widget.dart';
 import 'volunteer_create_screen.dart';
+import '../../services/auth_service.dart';
 import 'volunteer_detail_screen.dart';
 
 class VolunteerListScreen extends StatefulWidget {
@@ -14,6 +15,8 @@ class VolunteerListScreen extends StatefulWidget {
 }
 
 class _VolunteerListScreenState extends State<VolunteerListScreen> {
+  bool _supported = false;
+  String? _supporterName;
   // Mock volunteer data
   final Volunteer _mockVolunteer = Volunteer(
     id: '1',
@@ -178,59 +181,77 @@ class _VolunteerListScreenState extends State<VolunteerListScreen> {
                   
                   const SizedBox(height: AppTheme.spacing16),
                   
-                  // Support button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Support button pressed!'),
-                            backgroundColor: AppTheme.primaryBlue,
-                            duration: Duration(seconds: 2),
+                  // Support area
+                  if (!_supported)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final name = await AuthService.getCurrentUserName();
+                          if (mounted) {
+                            setState(() {
+                              _supported = true;
+                              _supporterName = name;
+                            });
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Supported by $name'),
+                              backgroundColor: AppTheme.primaryBlue,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4FC3F7), // Light blue
+                          foregroundColor: AppTheme.white,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppTheme.spacing12,
                           ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4FC3F7), // Light blue
-                        foregroundColor: AppTheme.white,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppTheme.spacing12,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                          ),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                        child: const Text(
+                          'Support',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                      child: const Text(
-                        'Support',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    )
+                  else
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppTheme.spacing12,
+                        horizontal: AppTheme.spacing12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                        border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.check_circle, color: Colors.green),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Supported by ${_supporterName ?? 'You'}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
                   
                   const SizedBox(height: AppTheme.spacing16),
-                  
-                  // Comments info row
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.chat_bubble_outline,
-                        size: 16,
-                        color: AppTheme.greyText,
-                      ),
-                      const SizedBox(width: AppTheme.spacing8),
-                      Text(
-                        '1 comments',
-                        style: AppTheme.bodySmall.copyWith(
-                          color: AppTheme.greyText,
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),

@@ -113,24 +113,27 @@ class _CommunityFeedScreenState extends State<CommunityFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final showOwnAppBar = ModalRoute.of(context)?.canPop ?? false;
     return Scaffold(
       backgroundColor: AppTheme.lightBackground,
-      appBar: AppBar(
-        title: const Text(
-          'Community',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: const Color(0xFF20B2AA),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
+      appBar: showOwnAppBar
+          ? AppBar(
+              title: const Text(
+                'Community',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              backgroundColor: const Color(0xFF20B2AA),
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            )
+          : null,
       body: _buildPostsList(),
       floatingActionButton: FloatingActionButton(
         heroTag: "community_fab",

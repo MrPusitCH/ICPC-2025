@@ -646,19 +646,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
           // Stats
           Row(
             children: [
-              Icon(
-                Icons.visibility,
-                size: 16,
-                color: Colors.grey.shade600,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '${_post!.viewCount} views',
-                style: AppTheme.bodySmall.copyWith(
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              const SizedBox(width: 16),
+              // Views removed per request
               InkWell(
                 onTap: _toggleLike,
                 child: Row(

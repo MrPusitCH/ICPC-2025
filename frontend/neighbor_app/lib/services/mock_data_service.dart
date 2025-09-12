@@ -186,26 +186,17 @@ class MockDataService {
       userId: 1,
       name: 'Dang Hayai',
       gender: 'Male',
-      age: '50',
+      age: '60',
       address: '203',
       avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
       diseases: const [
-        ProfileItem(
-          text: 'Type 2 diabetes',
-          icon: 'bloodtype',
-        ),
-        ProfileItem(
-          text: 'Osteoporosis',
-          icon: 'health_and_safety',
-        ),
-        ProfileItem(
-          text: 'High blood pressure',
-          icon: 'favorite',
-        ),
+        ProfileItem(text: 'Diabetes', icon: 'bloodtype'),
+        ProfileItem(text: 'High cholesterol', icon: 'health_and_safety'),
+        ProfileItem(text: 'High blood pressure', icon: 'favorite'),
       ],
       livingSituation: const [
         ProfileItem(
-          text: 'Living alone',
+          text: 'Has 4 children. The first and second work in other provinces. The third lives with Dang and leaves for work in the morning, returning in the evening. The fourth studies at a university far from home.',
           icon: 'person',
         ),
       ],

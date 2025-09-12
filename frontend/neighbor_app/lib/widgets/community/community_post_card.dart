@@ -196,22 +196,7 @@ class CommunityPostCard extends StatelessWidget {
                       color: Color(0xFF1A1A1A),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  
-                  // Views
-                  const Icon(
-                    Icons.visibility_outlined,
-                    size: 16,
-                    color: Color(0xFF1E88E5),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${post.viewCount} views',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF1A1A1A),
-                    ),
-                  ),
+                    // Views removed per request
                 ],
               ),
             ],

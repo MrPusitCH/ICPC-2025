@@ -113,20 +113,6 @@ class VolunteerCard extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    Icons.chat_bubble_outline,
-                    size: 16,
-                    color: Colors.grey.shade600,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${volunteer.comments}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Icon(
                     Icons.visibility_outlined,
                     size: 16,
                     color: Colors.grey.shade600,

@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../models/volunteer_item.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common/location_map_widget.dart';
+import '../../services/auth_service.dart';
 
 class VolunteerDetailScreen extends StatefulWidget {
   final Volunteer volunteer;
@@ -19,6 +20,8 @@ class VolunteerDetailScreen extends StatefulWidget {
 }
 
 class _VolunteerDetailScreenState extends State<VolunteerDetailScreen> {
+  bool _supported = false;
+  String? _supporterName;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -190,40 +193,76 @@ class _VolunteerDetailScreenState extends State<VolunteerDetailScreen> {
             ),
             const SizedBox(height: AppTheme.spacing20),
             
-            // Confirm and Support button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Confirm and Support button pressed!'),
-                      backgroundColor: AppTheme.primaryBlue,
-                      duration: Duration(seconds: 2),
+            // Confirm and Support area
+            if (!_supported)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final name = await AuthService.getCurrentUserName();
+                    if (mounted) {
+                      setState(() {
+                        _supported = true;
+                        _supporterName = name;
+                      });
+                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Supported by $name'),
+                        backgroundColor: AppTheme.primaryBlue,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4FC3F7), // Light blue
+                    foregroundColor: AppTheme.white,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppTheme.spacing12,
                     ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4FC3F7), // Light blue
-                  foregroundColor: AppTheme.white,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: AppTheme.spacing12,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                  child: const Text(
+                    'Confirm and Support',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  elevation: 0,
                 ),
-                child: const Text(
-                  'Confirm and Support',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
+              )
+            else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppTheme.spacing12,
+                  horizontal: AppTheme.spacing12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.green),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Supported by ${_supporterName ?? 'You'}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
             const SizedBox(height: AppTheme.spacing20),
           ],
         ),
