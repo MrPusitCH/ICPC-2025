@@ -6,6 +6,7 @@ import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/user_profile.dart';
 import '../../router/app_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -309,12 +310,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 12),
           Row(
-            children: const [
-              _EmergencyButton(icon: Icons.medical_services, label: 'hospital'),
-              SizedBox(width: 16),
-              _EmergencyButton(icon: Icons.local_police, label: 'police', filled: true),
-              SizedBox(width: 16),
-              _EmergencyButton(icon: Icons.local_fire_department, label: 'fire department'),
+            children: [
+              _EmergencyButton(
+                icon: Icons.medical_services,
+                label: 'hospital',
+                onTap: () => _showEmergencySheet(context, '1669', 'hospital'),
+              ),
+              const SizedBox(width: 16),
+              _EmergencyButton(
+                icon: Icons.local_police,
+                label: 'police',
+                filled: true,
+                onTap: () => _showEmergencySheet(context, '191', 'police'),
+              ),
+              const SizedBox(width: 16),
+              _EmergencyButton(
+                icon: Icons.local_fire_department,
+                label: 'fire department',
+                onTap: () => _showEmergencySheet(context, '199', 'fire department'),
+              ),
             ],
           ),
 
@@ -389,21 +403,29 @@ class _EmergencyButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool filled;
-  const _EmergencyButton({required this.icon, required this.label, this.filled = false});
+  final VoidCallback? onTap;
+  const _EmergencyButton({required this.icon, required this.label, this.filled = false, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          width: 68,
-          height: 68,
-          decoration: BoxDecoration(
-            color: filled ? const Color(0xFF7B1FA2).withValues(alpha: 0.12) : Colors.transparent,
-            border: Border.all(color: Colors.black.withValues(alpha: 0.3)),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
             borderRadius: BorderRadius.circular(10),
+            child: Container(
+              width: 68,
+              height: 68,
+              decoration: BoxDecoration(
+                color: filled ? const Color(0xFF7B1FA2).withValues(alpha: 0.12) : Colors.transparent,
+                border: Border.all(color: Colors.black.withValues(alpha: 0.3)),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, size: 28, color: filled ? const Color(0xFF7B1FA2) : const Color(0xFF1A1A1A)),
+            ),
           ),
-          child: Icon(icon, size: 28, color: filled ? const Color(0xFF7B1FA2) : const Color(0xFF1A1A1A)),
         ),
         const SizedBox(height: 6),
         Text(
@@ -413,4 +435,94 @@ class _EmergencyButton extends StatelessWidget {
       ],
     );
   }
+}
+
+Future<void> _showEmergencySheet(BuildContext context, String number, String label) async {
+  await showModalBottomSheet(
+    context: context,
+    isScrollControlled: false,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (ctx) {
+      return SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'emergency call',
+                    style: TextStyle(fontSize: 14, color: Color(0xFF7A8A9A)),
+                  ),
+                  Text(
+                    label,
+                    style: const TextStyle(fontSize: 14, color: Color(0xFF7A8A9A)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Big number
+              Text(
+                number,
+                style: const TextStyle(
+                  fontSize: 42,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1A1A1A),
+                  letterSpacing: 1.0,
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Call button styled like dial action
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final uri = Uri(scheme: 'tel', path: number);
+                    try {
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    } catch (_) {}
+                    if (Navigator.canPop(ctx)) Navigator.pop(ctx);
+                  },
+                  icon: const Icon(Icons.phone, color: Colors.white),
+                  label: const Text(
+                    'Call this number',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF43A047), // green
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Cancel button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: BorderSide(color: Colors.black.withValues(alpha: 0.2)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }

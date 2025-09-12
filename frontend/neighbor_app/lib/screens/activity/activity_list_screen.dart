@@ -243,7 +243,7 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
                 ),
                 const SizedBox(width: AppTheme.spacing8),
                 Text(
-                  '${activity.joined}/${activity.capacity}',
+                  '${(_joinedBy[index]?.length ?? activity.joined)}/${activity.capacity}',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -261,17 +261,18 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
                 
                 const Spacer(),
                 
-                // Participant avatars
+                // Participant avatars (first 3 by name initials)
                 Row(
                   children: [
-                    for (int i = 0; i < activity.joined && i < 3; i++)
+                    for (final name in (_joinedBy[index] ?? <String>[])
+                        .take(3))
                       Container(
                         margin: const EdgeInsets.only(left: 4),
                         child: CircleAvatar(
                           radius: 12,
-                          backgroundColor: Colors.grey.shade300,
+                          backgroundColor: Colors.grey.shade400,
                           child: Text(
-                            '${i + 1}',
+                            _initials(name),
                             style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
@@ -294,32 +295,68 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
             child: SizedBox(
               width: double.infinity,
               child: _joined.contains(index)
-                  ? Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppTheme.spacing12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
-                      ),
-                      child: const Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.check_circle, color: Colors.green),
-                            SizedBox(width: 8),
-                            Text(
-                              'Joined',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
-                              ),
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppTheme.spacing12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                          ),
+                          child: const Center(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.check_circle, color: Colors.green),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Joined',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 8),
+                        OutlinedButton(
+                          onPressed: () async {
+                            final name = await AuthService.getCurrentUserName();
+                            if (mounted) {
+                              setState(() {
+                                _joined.remove(index);
+                                final list = _joinedBy[index] ?? <String>[];
+                                list.remove(name);
+                                _joinedBy[index] = list;
+                              });
+                            }
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('You left this activity'),
+                                duration: Duration(seconds: 1),
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: AppTheme.spacing12),
+                            side: BorderSide(color: Colors.red.withValues(alpha: 0.4)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Cancel Join',
+                            style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
                     )
                   : ElevatedButton(
                       onPressed: () async {
@@ -468,4 +505,11 @@ class _JoinedChip extends StatelessWidget {
       ),
     );
   }
+}
+
+String _initials(String name) {
+  final parts = name.trim().split(RegExp(r"\s+")).where((e) => e.isNotEmpty).toList();
+  if (parts.isEmpty) return '?';
+  if (parts.length == 1) return parts.first[0].toUpperCase();
+  return (parts.first[0] + parts.last[0]).toUpperCase();
 }

@@ -61,33 +61,32 @@ class ProfileHeader extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  
-                                     // Info grid
-                   Row(
-                     children: [
-                       // Left column
-                       Expanded(
-                         child: Column(
-                           crossAxisAlignment: CrossAxisAlignment.start,
-                           children: [
-                             _InfoRow(label: 'Gender:', value: gender),
-                             const SizedBox(height: 8),
-                             _InfoRow(label: 'Age:', value: age),
-                           ],
-                         ),
-                       ),
-                       
-                       // Right column
-                       Expanded(
-                         child: Column(
-                           crossAxisAlignment: CrossAxisAlignment.start,
-                           children: [
-                             _InfoRow(label: 'Address:', value: address),
-                           ],
-                         ),
-                       ),
-                     ],
-                   ),
+                  // Aligned info grid (Label : Value)
+                  Table(
+                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                    columnWidths: const {
+                      0: FixedColumnWidth(80), // label width
+                      1: FixedColumnWidth(12), // colon spacer
+                      2: IntrinsicColumnWidth(),
+                    },
+                    children: [
+                      TableRow(children: [
+                        const _InfoText('Gender'),
+                        const _InfoText(':'),
+                        _InfoValue(gender),
+                      ]),
+                      TableRow(children: [
+                        const _InfoText('Age'),
+                        const _InfoText(':'),
+                        _InfoValue(age),
+                      ]),
+                      TableRow(children: [
+                        const _InfoText('Address'),
+                        const _InfoText(':'),
+                        _InfoValue(address),
+                      ]),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -135,6 +134,42 @@ class _InfoRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _InfoText extends StatelessWidget {
+  final String text;
+  const _InfoText(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 16,
+        color: Color(0xFF7A8A9A),
+        fontWeight: FontWeight.w500,
+      ),
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+}
+
+class _InfoValue extends StatelessWidget {
+  final String text;
+  const _InfoValue(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 16,
+        color: Color(0xFF1A1A1A),
+        fontWeight: FontWeight.w500,
+      ),
+      overflow: TextOverflow.ellipsis,
     );
   }
 }
