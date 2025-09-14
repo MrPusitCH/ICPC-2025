@@ -20,7 +20,7 @@ class PostsApiService {
         
         if (data['success'] == true && data['data'] != null) {
           final List<dynamic> posts = data['data'];
-          return posts.map((post) => _mapPostToVolunteer(post)).toList();
+          return posts.map((post) => Volunteer.fromJson(post)).toList();
         } else {
           throw Exception('Failed to fetch posts: ${data['error'] ?? 'Unknown error'}');
         }
@@ -44,7 +44,7 @@ class PostsApiService {
         final Map<String, dynamic> data = json.decode(response.body);
         
         if (data['success'] == true && data['data'] != null) {
-          return _mapPostToVolunteer(data['data']);
+          return Volunteer.fromJson(data['data']);
         } else {
           throw Exception('Failed to fetch post: ${data['error'] ?? 'Unknown error'}');
         }
@@ -88,7 +88,7 @@ class PostsApiService {
         final Map<String, dynamic> data = json.decode(response.body);
         
         if (data['success'] == true && data['data'] != null) {
-          return _mapPostToVolunteer(data['data']);
+          return Volunteer.fromJson(data['data']);
         } else {
           throw Exception('Failed to create post: ${data['error'] ?? 'Unknown error'}');
         }
@@ -153,49 +153,4 @@ class PostsApiService {
     }
   }
   
-  /// Map API post data to Volunteer model
-  static Volunteer _mapPostToVolunteer(Map<String, dynamic> post) {
-    final user = post['user'] ?? {};
-    final profile = user['profile'] ?? {};
-    
-    return Volunteer(
-      id: post['post_id'].toString(),
-      userId: post['user_id'] ?? 0,
-      requesterName: profile['full_name'] ?? user['email'] ?? 'Unknown User',
-      title: post['title'] ?? '',
-      description: post['description'] ?? '',
-      timeAgo: _formatTimeAgo(DateTime.parse(post['created_at'])),
-      dateTime: _formatDateTime(DateTime.parse(post['dateTime'])),
-      reward: post['reward'] ?? 'No reward',
-      avatarUrl: profile['profile_image_url'] ?? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-      comments: 0, // TODO: Add comments count when available
-      views: 0, // TODO: Add views count when available
-    );
-  }
-  
-  /// Format DateTime to time ago string
-  static String _formatTimeAgo(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-    
-    if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
-    } else {
-      return 'just now';
-    }
-  }
-  
-  /// Format DateTime to readable string
-  static String _formatDateTime(DateTime dateTime) {
-    final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    
-    return '${months[dateTime.month - 1]}. ${dateTime.day}, ${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-  }
 }

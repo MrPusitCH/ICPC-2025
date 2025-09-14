@@ -105,6 +105,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         avatarUrl: _avatarUrlController.text,
         diseases: [], // TODO: Add disease management
         livingSituation: [], // TODO: Add living situation management
+        interests: [], // Provide empty array instead of null
+        emergencyContacts: [], // Provide empty array instead of null
       );
 
       final success = await ProfileService.updateUserProfile(userId, profile);

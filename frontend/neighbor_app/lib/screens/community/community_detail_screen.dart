@@ -35,12 +35,22 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
   // Current user info
   int? _currentUserId;
   bool _isAdmin = false;
+  bool _hasLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    // Load user info and post
-    _loadUserAndPost();
+    // Don't call _loadUserAndPost here as it accesses inherited widgets
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Call _loadUserAndPost here after inherited widgets are available
+    if (!_hasLoaded) {
+      _hasLoaded = true;
+      _loadUserAndPost();
+    }
   }
 
   Future<void> _loadUserAndPost() async {

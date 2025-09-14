@@ -48,7 +48,7 @@ class NewsCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  NewsTagChip(tag: news.tag),
+                  NewsTagChip(tag: news.label),
                 ],
               ),
               const SizedBox(height: 12),

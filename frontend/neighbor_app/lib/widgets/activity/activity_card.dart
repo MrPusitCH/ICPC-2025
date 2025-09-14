@@ -67,8 +67,13 @@ class ActivityCard extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 20,
-                          backgroundImage: NetworkImage(activity.imageUrl),
+                          backgroundImage: activity.imageUrl != null 
+                              ? NetworkImage(activity.imageUrl!)
+                              : null,
                           backgroundColor: Colors.grey.shade200,
+                          child: activity.imageUrl == null
+                              ? const Icon(Icons.person, color: Colors.grey)
+                              : null,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -150,11 +155,23 @@ class ActivityCard extends StatelessWidget {
                     height: 80,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      image: DecorationImage(
-                        image: NetworkImage(activity.imageUrl),
-                        fit: BoxFit.cover,
-                      ),
+                      image: activity.imageUrl != null
+                          ? DecorationImage(
+                              image: NetworkImage(activity.imageUrl!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                      color: activity.imageUrl == null 
+                          ? Colors.grey.shade200 
+                          : null,
                     ),
+                    child: activity.imageUrl == null
+                        ? const Icon(
+                            Icons.image,
+                            color: Colors.grey,
+                            size: 32,
+                          )
+                        : null,
                   ),
                   const SizedBox(width: 16),
                   

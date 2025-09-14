@@ -4,6 +4,7 @@ library;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/user_profile.dart';
+import 'auth_service.dart';
 
 class ProfileService {
   static const String baseUrl = 'http://localhost:3000/api'; // Use 10.0.2.2 for Android emulator, or your computer's IP for physical device
@@ -13,10 +14,17 @@ class ProfileService {
     try {
       final url = '$baseUrl/profile/$userId';
       
+      // Get authentication token
+      final token = await AuthService.getCurrentUserToken();
+      if (token == null) {
+        throw Exception('Authentication token not found');
+      }
+      
       final response = await http.get(
         Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
         },
       );
 
@@ -50,10 +58,17 @@ class ProfileService {
   /// Update user profile via API
   static Future<bool> updateUserProfile(int userId, UserProfile profile) async {
     try {
+      // Get authentication token
+      final token = await AuthService.getCurrentUserToken();
+      if (token == null) {
+        throw Exception('Authentication token not found');
+      }
+      
       final response = await http.put(
         Uri.parse('$baseUrl/profile/$userId'),
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
         },
         body: json.encode({
           'user_id': userId,
@@ -62,6 +77,7 @@ class ProfileService {
           'gender': profile.gender,
           'address': profile.address,
           'profile_image_url': profile.avatarUrl,
+          'age': profile.age, // Send age to backend
           'health_conditions': profile.diseases.map((d) => d.text).toList(),
           'emergency_contacts': profile.emergencyContacts?.map((e) => {
             'name': e.name,

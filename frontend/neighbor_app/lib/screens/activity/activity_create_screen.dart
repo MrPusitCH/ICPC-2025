@@ -7,6 +7,7 @@ import '../../theme/app_theme.dart';
 import '../../router/app_router.dart';
 import '../../widgets/common/location_search_widget.dart';
 import '../../widgets/common/location_map_widget.dart';
+import '../../services/activity_api_service.dart';
 
 class ActivityCreateScreen extends StatefulWidget {
   const ActivityCreateScreen({super.key});
@@ -28,6 +29,7 @@ class _ActivityCreateScreenState extends State<ActivityCreateScreen> {
   String? _selectedImageName;
   String? _selectedLocation;
   LatLng? _selectedLatLng;
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -123,7 +125,7 @@ class _ActivityCreateScreenState extends State<ActivityCreateScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Place',
+                          'Place *',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -167,7 +169,7 @@ class _ActivityCreateScreenState extends State<ActivityCreateScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _submitForm,
+                  onPressed: _isSubmitting ? null : _submitForm,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4FC3F7), // Light blue
                     foregroundColor: Colors.white,
@@ -176,13 +178,22 @@ class _ActivityCreateScreenState extends State<ActivityCreateScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Send your invite',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'Send your invite',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -453,19 +464,68 @@ class _ActivityCreateScreenState extends State<ActivityCreateScreen> {
     );
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Activity created successfully!'),
-          backgroundColor: Color(0xFF4FC3F7),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      
-      // Navigate back
-      AppRouter.pop(context);
+      // Additional validation for required fields not covered by form validation
+      if (_selectedLocation == null || _selectedLocation!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select a location for the activity'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
+      setState(() {
+        _isSubmitting = true;
+      });
+
+      try {
+        await ActivityApiService.createActivity(
+          title: _titleController.text.trim(),
+          description: _messageController.text.trim(),
+          date: _dateController.text.trim(),
+          time: _timeController.text.trim(),
+          place: _selectedLocation ?? _placeController.text.trim(),
+          capacity: int.tryParse(_participationLimitController.text.trim()) ?? 1,
+          location: _selectedLocation,
+          latitude: _selectedLatLng?.latitude,
+          longitude: _selectedLatLng?.longitude,
+          imageUrl: _selectedImagePath,
+          imageName: _selectedImageName,
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Activity created successfully!'),
+              backgroundColor: Color(0xFF4FC3F7),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          
+          // Navigate back with success result
+          AppRouter.pop(context, true);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to create activity: ${e.toString()}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
+      }
     }
   }
 }

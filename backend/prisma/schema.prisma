@@ -43,6 +43,10 @@ model User {
   communityPosts CommunityPost[] @relation("CommunityPostAuthor")
   communityComments CommunityComment[] @relation("CommunityCommentAuthor")
   communityLikes CommunityLike[] @relation("CommunityLikeUser")
+  news           News[] @relation("NewsAuthor")
+  activities     Activity[] @relation("ActivityAuthor")
+  activityJoins  ActivityJoin[]
+  volunteerSupports VolunteerSupport[]
 
   @@map("users")
 }
@@ -122,16 +126,31 @@ model LoginHistory {
 }
 
 model Post {
-  post_id     Int      @id @default(autoincrement())
-  title       String
-  description String
-  dateTime    DateTime
-  reward      String?
-  created_at  DateTime @default(now())
-  user_id     Int
-  user        User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  post_id       Int      @id @default(autoincrement())
+  title         String
+  description   String
+  dateTime      DateTime
+  reward        String?
+  support_count Int      @default(0)
+  created_at    DateTime @default(now())
+  user_id       Int
+  user          User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  supports      VolunteerSupport[]
 
   @@map("posts")
+}
+
+model VolunteerSupport {
+  support_id   Int      @id @default(autoincrement())
+  post_id      Int
+  user_id      Int
+  supported_at DateTime @default(now())
+  
+  post         Post     @relation(fields: [post_id], references: [post_id], onDelete: Cascade)
+  user         User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  
+  @@unique([post_id, user_id])
+  @@map("volunteer_supports")
 }
 
 // Community Posts - for neighborhood community posts
@@ -206,4 +225,68 @@ model CommunityLike {
   
   @@unique([post_id, user_id])
   @@map("community_likes")
+}
+
+// News/Announcements model
+model News {
+  news_id       Int      @id @default(autoincrement())
+  title         String
+  content       String   @db.Text
+  priority      String   @default("notice") // 'important', 'caution', 'notice'
+  image_url     String?
+  image_name    String?
+  author_id     Int
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  is_published  Boolean  @default(true)
+  view_count    Int      @default(0)
+  date_time     String?  // For scheduled announcements
+  disclaimer    String?  // Additional notes
+  
+  // Relations
+  author        User     @relation("NewsAuthor", fields: [author_id], references: [user_id], onDelete: Cascade)
+  
+  @@map("news")
+}
+
+model Activity {
+  activity_id    Int      @id @default(autoincrement())
+  title          String
+  description    String   @db.Text
+  date           String
+  time           String
+  place          String
+  location       String?
+  latitude       Float?
+  longitude      Float?
+  capacity       Int      @default(1)
+  joined         Int      @default(0)
+  comments       Int      @default(0)
+  views          Int      @default(0)
+  image_url      String?
+  image_name     String?
+  author_id      Int
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  is_active      Boolean  @default(true)
+  end_time       String?
+  category       String?
+
+  author         User           @relation("ActivityAuthor", fields: [author_id], references: [user_id], onDelete: Cascade)
+  joins          ActivityJoin[]
+
+  @@map("activities")
+}
+
+model ActivityJoin {
+  join_id     Int      @id @default(autoincrement())
+  activity_id Int
+  user_id     Int
+  joined_at   DateTime @default(now())
+
+  activity    Activity @relation(fields: [activity_id], references: [activity_id], onDelete: Cascade)
+  user        User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@unique([activity_id, user_id])
+  @@map("activity_joins")
 }

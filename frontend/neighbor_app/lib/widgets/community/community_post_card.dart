@@ -123,7 +123,7 @@ class CommunityPostCard extends StatelessWidget {
               
               // Body preview
               Text(
-                post.body,
+                post.content,
                 style: const TextStyle(
                   fontSize: 16,
                   color: Color(0xFF1A1A1A),

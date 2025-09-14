@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     // Pre-fill with test credentials for easy testing
-    _emailController.text = 'test2@example.com';
+    _emailController.text = 'user@example.com';
     _passwordController.text = 'password123';
   }
 
@@ -313,7 +313,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: AppTheme.spacing8),
                     Text(
-                      'Email: elder.john@example.com\nPassword: password123',
+                      'Email: user@example.com\nPassword: password123',
                       style: AppTheme.bodyMedium.copyWith(
                         color: AppTheme.greyText,
                       ),

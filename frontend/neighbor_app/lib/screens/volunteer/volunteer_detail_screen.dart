@@ -3,7 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../models/volunteer_item.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/common/location_map_widget.dart';
-import '../../services/auth_service.dart';
+import '../../services/volunteer_support_service.dart';
 
 class VolunteerDetailScreen extends StatefulWidget {
   final Volunteer volunteer;
@@ -21,7 +21,97 @@ class VolunteerDetailScreen extends StatefulWidget {
 
 class _VolunteerDetailScreenState extends State<VolunteerDetailScreen> {
   bool _supported = false;
-  String? _supporterName;
+  int _supportCount = 0;
+  bool _isLoadingSupport = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSupportStatus();
+  }
+
+  Future<void> _loadSupportStatus() async {
+    try {
+      final postId = int.tryParse(widget.volunteer.id);
+      if (postId == null) return;
+      
+      final hasSupported = await VolunteerSupportService.hasSupportedVolunteerRequest(postId);
+      final supportCount = await VolunteerSupportService.getSupportCount(postId);
+      
+      if (mounted) {
+        setState(() {
+          _supported = hasSupported;
+          _supportCount = supportCount;
+        });
+      }
+    } catch (e) {
+      print('Error loading support status: $e');
+    }
+  }
+
+  Future<void> _handleSupport() async {
+    if (_isLoadingSupport) return;
+    
+    setState(() {
+      _isLoadingSupport = true;
+    });
+
+    try {
+      final postId = int.tryParse(widget.volunteer.id);
+      if (postId == null) {
+        throw Exception('Invalid post ID');
+      }
+      
+      if (_supported) {
+        // Unsupport
+        await VolunteerSupportService.unsupportVolunteerRequest(postId);
+        if (mounted) {
+          setState(() {
+            _supported = false;
+            _supportCount = (_supportCount - 1).clamp(0, double.infinity).toInt();
+          });
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Support removed'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else {
+        // Support
+        await VolunteerSupportService.supportVolunteerRequest(postId);
+        if (mounted) {
+          setState(() {
+            _supported = true;
+            _supportCount = _supportCount + 1;
+          });
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Successfully supported this request!'),
+            backgroundColor: AppTheme.primaryBlue,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingSupport = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -193,109 +283,81 @@ class _VolunteerDetailScreenState extends State<VolunteerDetailScreen> {
             ),
             const SizedBox(height: AppTheme.spacing20),
             
-            // Confirm and Support area
-            if (!_supported)
-              SizedBox(
+            // Support count display
+            if (_supportCount > 0)
+              Container(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final name = await AuthService.getCurrentUserName();
-                    if (mounted) {
-                      setState(() {
-                        _supported = true;
-                        _supporterName = name;
-                      });
-                    }
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Supported by $name'),
-                        backgroundColor: AppTheme.primaryBlue,
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4FC3F7), // Light blue
-                    foregroundColor: AppTheme.white,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppTheme.spacing12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Confirm and Support',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                padding: const EdgeInsets.all(AppTheme.spacing12),
+                margin: const EdgeInsets.only(bottom: AppTheme.spacing16),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.3)),
                 ),
-              )
-            else
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppTheme.spacing12,
-                      horizontal: AppTheme.spacing12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.check_circle, color: Colors.green),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Supported by ${_supporterName ?? 'You'}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.green,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.spacing8),
-                  OutlinedButton(
-                    onPressed: () {
-                      if (mounted) {
-                        setState(() {
-                          _supported = false;
-                          _supporterName = null;
-                        });
-                      }
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Support canceled'),
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: AppTheme.spacing12),
-                      side: BorderSide(color: Colors.red.withValues(alpha: 0.4)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.favorite, color: AppTheme.primaryBlue, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      '$_supportCount people supported this request',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primaryBlue,
                       ),
                     ),
-                    child: const Text(
-                      'Cancel Support',
-                      style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+
+            // Confirm and Support area
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoadingSupport ? null : _handleSupport,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _supported 
+                      ? Colors.green 
+                      : const Color(0xFF4FC3F7), // Light blue
+                  foregroundColor: AppTheme.white,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppTheme.spacing12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                ),
+                child: _isLoadingSupport
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            _supported ? Icons.check_circle : Icons.favorite,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _supported ? 'Supported' : 'Confirm and Support',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
             const SizedBox(height: AppTheme.spacing20),
           ],
         ),

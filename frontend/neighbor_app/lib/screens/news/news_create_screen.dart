@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../router/app_router.dart';
+import '../../services/news_api_service.dart';
 
 class NewsCreateScreen extends StatefulWidget {
   const NewsCreateScreen({super.key});
@@ -12,15 +13,20 @@ class _NewsCreateScreenState extends State<NewsCreateScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _messageController = TextEditingController();
+  final _dateTimeController = TextEditingController();
+  final _disclaimerController = TextEditingController();
   
   String? _selectedImagePath;
   String? _selectedImageName;
   String _selectedPriority = 'notice'; // Default to notice
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
     _titleController.dispose();
     _messageController.dispose();
+    _dateTimeController.dispose();
+    _disclaimerController.dispose();
     super.dispose();
   }
 
@@ -82,6 +88,20 @@ class _NewsCreateScreenState extends State<NewsCreateScreen> {
               
               const SizedBox(height: 20),
               
+              // Date and time input (optional)
+              _buildDateTimeField(),
+              
+              const SizedBox(height: 20),
+              
+              // Disclaimer input (optional)
+              _buildTextField(
+                controller: _disclaimerController,
+                hintText: 'Disclaimer note (optional)',
+                maxLines: 2,
+              ),
+              
+              const SizedBox(height: 20),
+              
               // Photo upload section
               _buildPhotoSection(),
               
@@ -107,7 +127,7 @@ class _NewsCreateScreenState extends State<NewsCreateScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _submitForm,
+                  onPressed: _isSubmitting ? null : _submitForm,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4FC3F7), // Light blue
                     foregroundColor: Colors.white,
@@ -117,13 +137,22 @@ class _NewsCreateScreenState extends State<NewsCreateScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'Send your post',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'Send your post',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -167,6 +196,54 @@ class _NewsCreateScreenState extends State<NewsCreateScreen> {
         ),
         filled: true,
         fillColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildDateTimeField() {
+    return InkWell(
+      onTap: _selectDateTime,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0xFFE0E0E0)),
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.white,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.calendar_today,
+              color: _dateTimeController.text.isNotEmpty 
+                  ? const Color(0xFF4FC3F7) 
+                  : const Color(0xFF9E9E9E),
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _dateTimeController.text.isNotEmpty 
+                    ? _dateTimeController.text
+                    : 'Date and time (optional)',
+                style: TextStyle(
+                  color: _dateTimeController.text.isNotEmpty 
+                      ? const Color(0xFF1A1A1A)
+                      : const Color(0xFF9E9E9E),
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            if (_dateTimeController.text.isNotEmpty)
+              IconButton(
+                onPressed: _clearDateTime,
+                icon: const Icon(
+                  Icons.clear,
+                  color: Color(0xFF9E9E9E),
+                  size: 20,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -340,18 +417,139 @@ class _NewsCreateScreenState extends State<NewsCreateScreen> {
     });
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      // Simulate form submission
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Announcement posted successfully!'),
-          duration: Duration(seconds: 2),
-        ),
+  Future<void> _selectDateTime() async {
+    // First select date
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF4FC3F7),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Color(0xFF1A1A1A),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedDate != null) {
+      // Then select time
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+        builder: (context, child) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(
+                primary: Color(0xFF4FC3F7),
+                onPrimary: Colors.white,
+                surface: Colors.white,
+                onSurface: Color(0xFF1A1A1A),
+              ),
+            ),
+            child: child!,
+          );
+        },
       );
-      
-      // Navigate back to news list
-      AppRouter.pop(context);
+
+      if (pickedTime != null) {
+        // Combine date and time
+        final DateTime selectedDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+
+        // Format the date and time
+        final String formattedDateTime = _formatDateTime(selectedDateTime);
+        
+        setState(() {
+          _dateTimeController.text = formattedDateTime;
+        });
+      }
+    }
+  }
+
+  void _clearDateTime() {
+    setState(() {
+      _dateTimeController.clear();
+    });
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    
+    final month = months[dateTime.month - 1];
+    final day = dateTime.day;
+    final year = dateTime.year;
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    
+    return '$month. $day, $year $hour:$minute';
+  }
+
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isSubmitting = true;
+      });
+
+      try {
+        await NewsApiService.createNews(
+          title: _titleController.text.trim(),
+          content: _messageController.text.trim(),
+          priority: _selectedPriority,
+          imageUrl: _selectedImagePath,
+          imageName: _selectedImageName,
+          dateTime: _dateTimeController.text.trim().isNotEmpty 
+              ? _dateTimeController.text.trim() 
+              : null,
+          disclaimer: _disclaimerController.text.trim().isNotEmpty 
+              ? _disclaimerController.text.trim() 
+              : null,
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Announcement posted successfully!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          
+          // Navigate back to news list with success result
+          AppRouter.pop(context, true);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to post announcement: ${e.toString()}'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
+      }
     }
   }
 }

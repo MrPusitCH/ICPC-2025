@@ -122,20 +122,32 @@ class ApiService {
     // Simulate API delay
     await Future.delayed(const Duration(milliseconds: 1000));
     
+    final now = DateTime.now();
     // Return mock created activity
-    return const ActivityItem(
-      userName: 'Current User',
-      timeAgo: 'just now',
+    return ActivityItem(
+      activityId: DateTime.now().millisecondsSinceEpoch,
       title: 'New Activity',
       description: 'This is a new activity created by the user.',
       date: 'Sep. 25, 2025',
       time: '10:00 - 12:00',
       place: 'Community Center',
-      joined: 1,
+      location: 'Community Center, Main Hall',
+      latitude: 13.7563,
+      longitude: 100.5018,
       capacity: 10,
+      joined: 1,
       comments: 0,
       views: 1,
       imageUrl: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=400&h=300&fit=crop',
+      imageName: 'new-activity.jpg',
+      authorId: 1,
+      authorName: 'Current User',
+      authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
+      createdAt: now,
+      updatedAt: now,
+      isActive: true,
+      endTime: '12:00',
+      category: 'General',
     );
   }
 

@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/activity_item.dart';
 import '../../theme/app_theme.dart';
 import '../../router/app_router.dart';
-import '../../services/mock_data_service.dart';
-import '../../services/auth_service.dart';
+import '../../services/activity_api_service.dart';
 
 class ActivityListScreen extends StatefulWidget {
   const ActivityListScreen({super.key});
@@ -13,47 +12,53 @@ class ActivityListScreen extends StatefulWidget {
 }
 
 class _ActivityListScreenState extends State<ActivityListScreen> {
-  late final List<ActivityItem> _activities;
+  List<ActivityItem> _activities = [];
   final Map<int, List<String>> _joinedBy = {};
   final Set<int> _joined = {};
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _activities = MockDataService.getActivityItems();
-    _seedJoined();
+    _loadActivities();
   }
 
-  void _seedJoined() {
-    const seedNames = [
-      'John', 'Sarah', 'Mike', 'Emily', 'Alex', 'Kate', 'Tom', 'Lily'
-    ];
-    for (var i = 0; i < _activities.length; i++) {
-      final count = _activities[i].joined;
-      _joinedBy[i] = List.generate(
-        count.clamp(0, seedNames.length),
-        (idx) => seedNames[idx],
-      );
+  Future<void> _loadActivities() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      final activities = await ActivityApiService.getActivities();
+      setState(() {
+        _activities = activities;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.lightBackground,
-      body: ListView.builder(
-        padding: const EdgeInsets.all(AppTheme.spacing16),
-        itemCount: _activities.length,
-        itemBuilder: (context, index) {
-          final activity = _activities[index];
-          return _buildActivityCard(context, activity, index);
-        },
-      ),
+      body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         heroTag: "activity_fab",
-        onPressed: () {
+        onPressed: () async {
           // Navigate to create activity
-          AppRouter.pushNamed(context, AppRouter.activityCreate);
+          final result = await AppRouter.pushNamed(context, AppRouter.activityCreate);
+          if (result == true) {
+            // Refresh the list if a new activity was created
+            _loadActivities();
+          }
         },
         backgroundColor: const Color(0xFF4FC3F7), // Light blue
         child: const Icon(
@@ -64,11 +69,115 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
     );
   }
 
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4FC3F7)),
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.red,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Error loading activities',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A1A),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _error!,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadActivities,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4FC3F7),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_activities.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.event_available,
+              size: 64,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'No activities available',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A1A),
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Be the first to create an activity!',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadActivities,
+      color: const Color(0xFF4FC3F7),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(AppTheme.spacing16),
+        itemCount: _activities.length,
+        itemBuilder: (context, index) {
+          final activity = _activities[index];
+          return _buildActivityCard(context, activity, index);
+        },
+      ),
+    );
+  }
+
   Widget _buildActivityCard(BuildContext context, ActivityItem activity, int index) {
     return InkWell(
-      onTap: () {
+      onTap: () async {
+        // Increment view count
+        try {
+          await ActivityApiService.incrementViewCount(activity.activityId);
+        } catch (e) {
+          // Silently fail for view count
+        }
+        
         // Navigate to activity detail screen
-        AppRouter.pushNamed(context, AppRouter.activityDetail);
+        AppRouter.pushNamed(context, AppRouter.activityDetail, arguments: activity);
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
@@ -96,13 +205,18 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: Colors.grey.shade300,
-                  child: Text(
-                    activity.userName.isNotEmpty ? activity.userName[0].toUpperCase() : 'U',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  backgroundImage: activity.authorAvatar != null 
+                      ? NetworkImage(activity.authorAvatar!)
+                      : null,
+                  child: activity.authorAvatar == null
+                      ? Text(
+                          activity.userName.isNotEmpty ? activity.userName[0].toUpperCase() : 'U',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
                 ),
                 const SizedBox(width: AppTheme.spacing12),
                 
@@ -194,14 +308,14 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
                   decoration: BoxDecoration(
                     color: Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(12),
-                    image: activity.imageUrl.isNotEmpty
+                    image: activity.imageUrl != null && activity.imageUrl!.isNotEmpty
                         ? DecorationImage(
-                            image: NetworkImage(activity.imageUrl),
+                            image: NetworkImage(activity.imageUrl!),
                             fit: BoxFit.cover,
                           )
                         : null,
                   ),
-                  child: activity.imageUrl.isEmpty
+                  child: activity.imageUrl == null || activity.imageUrl!.isEmpty
                       ? const Icon(
                           Icons.sports_esports,
                           size: 40,
@@ -243,7 +357,7 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
                 ),
                 const SizedBox(width: AppTheme.spacing8),
                 Text(
-                  '${(_joinedBy[index]?.length ?? activity.joined)}/${activity.capacity}',
+                  activity.participantText,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -328,21 +442,52 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
                         const SizedBox(height: 8),
                         OutlinedButton(
                           onPressed: () async {
-                            final name = await AuthService.getCurrentUserName();
-                            if (mounted) {
-                              setState(() {
-                                _joined.remove(index);
-                                final list = _joinedBy[index] ?? <String>[];
-                                list.remove(name);
-                                _joinedBy[index] = list;
-                              });
+                            try {
+                              await ActivityApiService.leaveActivity(activity.activityId);
+                              if (mounted) {
+                                setState(() {
+                                  _joined.remove(index);
+                                  _activities[index] = ActivityItem(
+                                    activityId: activity.activityId,
+                                    title: activity.title,
+                                    description: activity.description,
+                                    date: activity.date,
+                                    time: activity.time,
+                                    place: activity.place,
+                                    location: activity.location,
+                                    latitude: activity.latitude,
+                                    longitude: activity.longitude,
+                                    capacity: activity.capacity,
+                                    joined: activity.joined - 1,
+                                    comments: activity.comments,
+                                    views: activity.views,
+                                    imageUrl: activity.imageUrl,
+                                    imageName: activity.imageName,
+                                    authorId: activity.authorId,
+                                    authorName: activity.authorName,
+                                    authorAvatar: activity.authorAvatar,
+                                    createdAt: activity.createdAt,
+                                    updatedAt: activity.updatedAt,
+                                    isActive: activity.isActive,
+                                    endTime: activity.endTime,
+                                    category: activity.category,
+                                  );
+                                });
+                              }
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('You left this activity'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to leave activity: ${e.toString()}'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
                             }
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('You left this activity'),
-                                duration: Duration(seconds: 1),
-                              ),
-                            );
                           },
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: AppTheme.spacing12),
@@ -360,22 +505,53 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
                     )
                   : ElevatedButton(
                       onPressed: () async {
-                        final name = await AuthService.getCurrentUserName();
-                        if (mounted) {
-                          setState(() {
-                            _joined.add(index);
-                            final list = _joinedBy[index] ?? <String>[];
-                            if (!list.contains(name)) list.add(name);
-                            _joinedBy[index] = list;
-                          });
+                        try {
+                          await ActivityApiService.joinActivity(activity.activityId);
+                          if (mounted) {
+                            setState(() {
+                              _joined.add(index);
+                              _activities[index] = ActivityItem(
+                                activityId: activity.activityId,
+                                title: activity.title,
+                                description: activity.description,
+                                date: activity.date,
+                                time: activity.time,
+                                place: activity.place,
+                                location: activity.location,
+                                latitude: activity.latitude,
+                                longitude: activity.longitude,
+                                capacity: activity.capacity,
+                                joined: activity.joined + 1,
+                                comments: activity.comments,
+                                views: activity.views,
+                                imageUrl: activity.imageUrl,
+                                imageName: activity.imageName,
+                                authorId: activity.authorId,
+                                authorName: activity.authorName,
+                                authorAvatar: activity.authorAvatar,
+                                createdAt: activity.createdAt,
+                                updatedAt: activity.updatedAt,
+                                isActive: activity.isActive,
+                                endTime: activity.endTime,
+                                category: activity.category,
+                              );
+                            });
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('You joined ${activity.title}'),
+                              backgroundColor: const Color(0xFF4FC3F7),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to join activity: ${e.toString()}'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
                         }
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('You joined ${activity.title}'),
-                            backgroundColor: const Color(0xFF4FC3F7),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF4FC3F7), // Light blue
