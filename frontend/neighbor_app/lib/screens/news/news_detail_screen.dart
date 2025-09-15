@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 import '../../router/app_router.dart';
 import '../../models/news_item.dart';
 
@@ -103,6 +105,12 @@ class NewsDetailScreen extends StatelessWidget {
             ),
             
             const SizedBox(height: 20),
+            
+            // Image display if available
+            if (news.imageUrl != null && news.imageUrl!.isNotEmpty) ...[
+              _buildNewsImage(news.imageUrl!),
+              const SizedBox(height: 20),
+            ],
             
             // Main content
             Text(
@@ -223,6 +231,63 @@ class NewsDetailScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildNewsImage(String imageUrl) {
+    print('Building news detail image for URL: $imageUrl');
+    
+    // Check if it's a local file path or server/network URL
+    bool isLocalFile = (imageUrl.startsWith('/') && !imageUrl.startsWith('http')) || imageUrl.contains('\\');
+    bool isBlobUrl = imageUrl.startsWith('blob:');
+    bool isApiUrl = imageUrl.startsWith('/api/');
+    
+    // For web platform, always use Image.network for blob URLs
+    if (isBlobUrl) {
+      isLocalFile = false;
+    }
+    
+    // On Flutter Web, always use Image.network
+    bool isWeb = kIsWeb;
+    
+    return Container(
+      width: double.infinity,
+      height: 300,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.grey.shade100,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: (isLocalFile && !isWeb)
+            ? Image.file(
+                File(imageUrl),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  print('Error loading local image: $error');
+                  return const Icon(Icons.error, color: Colors.red);
+                },
+              )
+            : Image.network(
+                isBlobUrl ? imageUrl :
+                isApiUrl ? 'http://127.0.0.1:3000$imageUrl' : 
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  print('Error loading network image: $error');
+                  return const Icon(Icons.error, color: Colors.red);
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    color: Colors.grey.shade200,
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                },
+              ),
       ),
     );
   }

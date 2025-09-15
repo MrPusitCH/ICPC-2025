@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
-class ProfileHeader extends StatelessWidget {
+class ProfileHeader extends StatefulWidget {
   final String avatar;
   final String name;
   final String gender;
   final String age;
   final String address;
+  final Function(String)? onAvatarChanged;
 
   const ProfileHeader({
     super.key,
@@ -14,7 +18,32 @@ class ProfileHeader extends StatelessWidget {
     required this.gender,
     required this.age,
     required this.address,
+    this.onAvatarChanged,
   });
+
+  @override
+  State<ProfileHeader> createState() => _ProfileHeaderState();
+}
+
+class _ProfileHeaderState extends State<ProfileHeader> {
+  final ImagePicker _picker = ImagePicker();
+  String? _currentAvatar;
+  File? _selectedImage;
+  XFile? _selectedXFile;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentAvatar = widget.avatar;
+  }
+
+  @override
+  void didUpdateWidget(ProfileHeader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.avatar != oldWidget.avatar) {
+      _currentAvatar = widget.avatar;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +68,34 @@ class ProfileHeader extends StatelessWidget {
         child: Row(
           children: [
             // Avatar
-            CircleAvatar(
-              radius: 36, // 72px diameter
-              backgroundImage: NetworkImage(avatar),
-              backgroundColor: Colors.grey.shade200,
+            GestureDetector(
+              onTap: _selectPhoto,
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 36, // 72px diameter
+                    backgroundImage: _buildAvatarImage(),
+                    backgroundColor: Colors.grey.shade200,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF4FC3F7),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(width: 16),
             
@@ -135,6 +188,105 @@ class _InfoRow extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _selectPhoto() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 300,
+        maxHeight: 300,
+        imageQuality: 90,
+      );
+      
+      if (image != null) {
+        setState(() {
+          if (kIsWeb) {
+            _selectedXFile = image;
+            _currentAvatar = image.path;
+          } else {
+            _selectedImage = File(image.path);
+            _currentAvatar = image.path;
+          }
+        });
+        
+        // Upload the image and get the URL
+        await _uploadProfilePhoto();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error selecting photo: $e'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _uploadProfilePhoto() async {
+    try {
+      // Import the community API service for uploading
+      // Note: You might want to create a dedicated profile service for this
+      String? uploadedUrl;
+      
+      if (kIsWeb && _selectedXFile != null) {
+        // For web, we'll use a placeholder for now
+        // You can implement actual upload logic here
+        uploadedUrl = _selectedXFile!.path;
+      } else if (!kIsWeb && _selectedImage != null) {
+        // For mobile, we'll use a placeholder for now
+        // You can implement actual upload logic here
+        uploadedUrl = _selectedImage!.path;
+      }
+      
+      if (uploadedUrl != null && widget.onAvatarChanged != null) {
+        widget.onAvatarChanged!(uploadedUrl);
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile photo updated successfully'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error uploading photo: $e'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  ImageProvider? _buildAvatarImage() {
+    if (_currentAvatar == null) return null;
+    
+    // Check if it's a local file path or server/network URL
+    bool isLocalFile = (_currentAvatar!.startsWith('/') && !_currentAvatar!.startsWith('http')) || 
+                      _currentAvatar!.contains('\\');
+    bool isBlobUrl = _currentAvatar!.startsWith('blob:');
+    bool isApiUrl = _currentAvatar!.startsWith('/api/');
+    
+    // For web platform, always use Image.network for blob URLs
+    if (isBlobUrl) {
+      isLocalFile = false;
+    }
+    
+    if (isLocalFile && !kIsWeb && _selectedImage != null) {
+      return FileImage(_selectedImage!);
+    } else {
+      String imageUrl = isBlobUrl ? _currentAvatar! :
+                       isApiUrl ? 'http://127.0.0.1:3000$_currentAvatar' : 
+                       _currentAvatar!;
+      return NetworkImage(imageUrl);
+    }
   }
 }
 

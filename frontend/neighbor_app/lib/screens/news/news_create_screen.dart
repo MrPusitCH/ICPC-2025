@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../router/app_router.dart';
 import '../../services/news_api_service.dart';
+import '../../services/community_api_service.dart';
 
 class NewsCreateScreen extends StatefulWidget {
   const NewsCreateScreen({super.key});
@@ -18,8 +22,11 @@ class _NewsCreateScreenState extends State<NewsCreateScreen> {
   
   String? _selectedImagePath;
   String? _selectedImageName;
+  File? _selectedImage;
+  XFile? _selectedXFile;
   String _selectedPriority = 'notice'; // Default to notice
   bool _isSubmitting = false;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
@@ -286,19 +293,7 @@ class _NewsCreateScreenState extends State<NewsCreateScreen> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: const Color(0xFFF5F5F5),
-                        child: const Icon(
-                          Icons.image,
-                          color: Color(0xFF9E9E9E),
-                        ),
-                      );
-                    },
-                  ),
+                  child: _buildNewsImage(),
                 ),
               ),
               
@@ -395,25 +390,51 @@ class _NewsCreateScreenState extends State<NewsCreateScreen> {
     );
   }
 
-  void _selectPhoto() {
-    // Simulate photo selection
-    setState(() {
-      _selectedImagePath = 'mock_image_path';
-      _selectedImageName = '...574-9F6B-E47AD907077F.png';
-    });
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Photo selected (simulated)'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+  Future<void> _selectPhoto() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+      
+      if (image != null) {
+        setState(() {
+          if (kIsWeb) {
+            _selectedXFile = image;
+            _selectedImagePath = image.path;
+            _selectedImageName = image.name;
+          } else {
+            _selectedImage = File(image.path);
+            _selectedImagePath = image.path;
+            _selectedImageName = image.name;
+          }
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Photo selected successfully'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error selecting photo: $e'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   void _deletePhoto() {
     setState(() {
       _selectedImagePath = null;
       _selectedImageName = null;
+      _selectedImage = null;
+      _selectedXFile = null;
     });
   }
 
@@ -500,6 +521,59 @@ class _NewsCreateScreenState extends State<NewsCreateScreen> {
     return '$month. $day, $year $hour:$minute';
   }
 
+  Widget _buildNewsImage() {
+    if (_selectedImagePath == null) {
+      return Container(
+        color: const Color(0xFFF5F5F5),
+        child: const Icon(
+          Icons.image,
+          color: Color(0xFF9E9E9E),
+          size: 24,
+        ),
+      );
+    }
+
+    // Check if it's a local file path or server/network URL
+    bool isLocalFile = (kIsWeb && _selectedXFile != null) || 
+                      (!kIsWeb && _selectedImage != null);
+    bool isBlobUrl = _selectedImagePath!.startsWith('blob:');
+    bool isApiUrl = _selectedImagePath!.startsWith('/api/');
+    
+    // For web platform, always use Image.network for blob URLs
+    if (isBlobUrl) {
+      isLocalFile = false;
+    }
+    
+    return (isLocalFile && !kIsWeb)
+        ? Image.file(
+            _selectedImage!,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              print('Error loading local image: $error');
+              return const Icon(Icons.error, color: Colors.red);
+            },
+          )
+        : Image.network(
+            isBlobUrl ? _selectedImagePath! :
+            isApiUrl ? 'http://127.0.0.1:3000$_selectedImagePath' : 
+            _selectedImagePath!,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              print('Error loading network image: $error');
+              return const Icon(Icons.error, color: Colors.red);
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                color: Colors.grey.shade200,
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            },
+          );
+  }
+
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -507,12 +581,28 @@ class _NewsCreateScreenState extends State<NewsCreateScreen> {
       });
 
       try {
+        String? uploadedImageUrl;
+        String? uploadedImageName;
+        
+        // Upload image if selected
+        if (_selectedImagePath != null) {
+          if (kIsWeb && _selectedXFile != null) {
+            final result = await CommunityApiService.uploadMediaWeb(_selectedXFile!);
+            uploadedImageUrl = result['url'];
+            uploadedImageName = result['filename'];
+          } else if (!kIsWeb && _selectedImage != null) {
+            final result = await CommunityApiService.uploadMedia(_selectedImage!);
+            uploadedImageUrl = result['url'];
+            uploadedImageName = result['filename'];
+          }
+        }
+        
         await NewsApiService.createNews(
           title: _titleController.text.trim(),
           content: _messageController.text.trim(),
           priority: _selectedPriority,
-          imageUrl: _selectedImagePath,
-          imageName: _selectedImageName,
+          imageUrl: uploadedImageUrl,
+          imageName: uploadedImageName,
           dateTime: _dateTimeController.text.trim().isNotEmpty 
               ? _dateTimeController.text.trim() 
               : null,
