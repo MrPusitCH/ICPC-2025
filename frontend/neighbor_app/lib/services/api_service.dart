@@ -1,9 +1,12 @@
 /// API service for the Neighbor app
 /// 
-/// This service handles all communication with the backend API.
-/// Currently uses mock data service as a placeholder until backend integration is complete.
-/// 
-/// All methods simulate network delays to provide realistic user experience.
+/// This service is deprecated and should not be used.
+/// All methods have been moved to specific API services:
+/// - NewsApiService for news operations
+/// - CommunityApiService for community post operations
+/// - ActivityApiService for activity operations
+/// - VolunteerApiService for volunteer operations
+/// - ProfileService for user profile operations
 library;
 
 import '../models/news_item.dart';
@@ -11,7 +14,6 @@ import '../models/community_post.dart';
 import '../models/activity_item.dart';
 import '../models/volunteer_item.dart';
 import '../models/user_profile.dart';
-import 'mock_data_service.dart';
 
 /// Central API service class for handling all backend communications
 /// 
@@ -31,9 +33,8 @@ class ApiService {
   /// Returns a list of news items with simulated network delay
   /// In production, this would make an HTTP GET request to /api/news
   static Future<List<NewsItem>> getNewsItems() async {
-    // Simulate API delay for realistic user experience
-    await Future.delayed(const Duration(milliseconds: 500));
-    return MockDataService.getNewsItems();
+    // This method is deprecated - use NewsApiService instead
+    throw UnimplementedError('Use NewsApiService.getNewsItems() instead');
   }
 
   /// Fetches all community posts from the API
@@ -41,9 +42,8 @@ class ApiService {
   /// Returns a list of community posts with simulated network delay
   /// In production, this would make an HTTP GET request to /api/community/posts
   static Future<List<CommunityPost>> getCommunityPosts() async {
-    // Simulate API delay for realistic user experience
-    await Future.delayed(const Duration(milliseconds: 500));
-    return MockDataService.getCommunityPosts();
+    // This method is deprecated - use CommunityApiService instead
+    throw UnimplementedError('Use CommunityApiService.getCommunityPosts() instead');
   }
 
   /// Fetches all activity items from the API
@@ -51,9 +51,8 @@ class ApiService {
   /// Returns a list of activity items with simulated network delay
   /// In production, this would make an HTTP GET request to /api/activities
   static Future<List<ActivityItem>> getActivityItems() async {
-    // Simulate API delay for realistic user experience
-    await Future.delayed(const Duration(milliseconds: 500));
-    return MockDataService.getActivityItems();
+    // This method is deprecated - use ActivityApiService instead
+    throw UnimplementedError('Use ActivityApiService.getActivities() instead');
   }
 
   /// Fetches all volunteer opportunities from the API
@@ -61,9 +60,8 @@ class ApiService {
   /// Returns a list of volunteer items with simulated network delay
   /// In production, this would make an HTTP GET request to /api/volunteers
   static Future<List<Volunteer>> getVolunteerItems() async {
-    // Simulate API delay for realistic user experience
-    await Future.delayed(const Duration(milliseconds: 500));
-    return MockDataService.getVolunteerItems();
+    // This method is deprecated - use VolunteerApiService instead
+    throw UnimplementedError('Use VolunteerApiService.getVolunteerPosts() instead');
   }
 
   /// Fetches the current user's profile from the API
@@ -71,9 +69,8 @@ class ApiService {
   /// Returns user profile data with simulated network delay
   /// In production, this would make an HTTP GET request to /api/user/profile
   static Future<UserProfile> getUserProfile() async {
-    // Simulate API delay for realistic user experience
-    await Future.delayed(const Duration(milliseconds: 500));
-    return MockDataService.getUserProfile();
+    // This method is deprecated - use ProfileService instead
+    throw UnimplementedError('Use ProfileService.getUserProfile() instead');
   }
 
   // ============================================================================
@@ -92,22 +89,8 @@ class ApiService {
     required String title,
     required String body,
   }) async {
-    // Simulate API delay for realistic user experience
-    await Future.delayed(const Duration(milliseconds: 1000));
-    
-    // Return mock created post
-    return CommunityPost(
-      postId: DateTime.now().millisecondsSinceEpoch,
-      title: 'New Post',
-      content: 'This is a new post created by the user.',
-      authorId: 1,
-      authorName: 'Current User',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      commentCount: 0,
-      viewCount: 1,
-      authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-    );
+    // This method is deprecated - use CommunityApiService instead
+    throw UnimplementedError('Use CommunityApiService.createPost() instead');
   }
 
   /// Create a new activity
@@ -119,36 +102,8 @@ class ApiService {
     required String place,
     required int capacity,
   }) async {
-    // Simulate API delay
-    await Future.delayed(const Duration(milliseconds: 1000));
-    
-    final now = DateTime.now();
-    // Return mock created activity
-    return ActivityItem(
-      activityId: DateTime.now().millisecondsSinceEpoch,
-      title: 'New Activity',
-      description: 'This is a new activity created by the user.',
-      date: 'Sep. 25, 2025',
-      time: '10:00 - 12:00',
-      place: 'Community Center',
-      location: 'Community Center, Main Hall',
-      latitude: 13.7563,
-      longitude: 100.5018,
-      capacity: 10,
-      joined: 1,
-      comments: 0,
-      views: 1,
-      imageUrl: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=400&h=300&fit=crop',
-      imageName: 'new-activity.jpg',
-      authorId: 1,
-      authorName: 'Current User',
-      authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-      createdAt: now,
-      updatedAt: now,
-      isActive: true,
-      endTime: '12:00',
-      category: 'General',
-    );
+    // This method is deprecated - use ActivityApiService instead
+    throw UnimplementedError('Use ActivityApiService.createActivity() instead');
   }
 
   /// Create a new volunteer request
@@ -158,23 +113,8 @@ class ApiService {
     required String dateTime,
     required String reward,
   }) async {
-    // Simulate API delay
-    await Future.delayed(const Duration(milliseconds: 1000));
-    
-    // Return mock created volunteer request
-    return const Volunteer(
-      id: 'new',
-      userId: 1, // Mock user ID
-      requesterName: 'Current User',
-      title: 'New Volunteer Request',
-      description: 'This is a new volunteer request created by the user.',
-      timeAgo: 'just now',
-      dateTime: 'Sep. 25, 2025 10:00 - 12:00',
-      reward: '฿500',
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-      comments: 0,
-      views: 1,
-    );
+    // This method is deprecated - use VolunteerApiService instead
+    throw UnimplementedError('Use VolunteerApiService.createVolunteerPost() instead');
   }
 }
 
