@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import '../../models/activity_item.dart';
 import '../../theme/app_theme.dart';
 import '../../router/app_router.dart';
-import '../../widgets/common/fallback_map_widget.dart';
+import '../../widgets/common/location_map_widget.dart';
+import 'package:latlong2/latlong.dart';
 import '../../services/activity_api_service.dart';
 
 class ActivityDetailScreen extends StatefulWidget {
@@ -277,10 +278,15 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: FallbackMapWidget(
+            child: LocationMapWidget(
               height: 200,
-              title: 'Activity Location',
-              address: _activity!.place,
+              initialPosition: LatLng(
+                _activity!.latitude ?? 0.0,
+                _activity!.longitude ?? 0.0,
+              ),
+              onLocationSelected: (LatLng position, String address) {
+                // Handle location selection if needed
+              },
             ),
           ),
         ),

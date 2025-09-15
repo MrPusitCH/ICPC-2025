@@ -2,10 +2,14 @@
 /// Form for editing user profile information
 library;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../theme/app_theme.dart';
 import '../../router/app_router.dart';
 import '../../services/profile_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/community_api_service.dart';
 import '../../models/user_profile.dart';
 
 class ProfileEditScreen extends StatefulWidget {
@@ -26,6 +30,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   
   bool _isLoading = false;
   bool _isSaving = false;
+  final ImagePicker _picker = ImagePicker();
+  File? _selectedImage;
+  XFile? _selectedXFile;
+  String? _currentAvatarUrl;
 
   @override
   void initState() {
@@ -59,6 +67,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       _ageController.text = profile.age;
       _addressController.text = profile.address;
       _avatarUrlController.text = profile.avatarUrl;
+      _currentAvatarUrl = profile.avatarUrl;
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -95,6 +104,28 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         return;
       }
       
+      // Upload profile photo if selected
+      String avatarUrl = _avatarUrlController.text;
+      if (_selectedImage != null || _selectedXFile != null) {
+        try {
+          final uploadResult = kIsWeb 
+            ? await CommunityApiService.uploadMediaWeb(_selectedXFile!)
+            : await CommunityApiService.uploadMedia(_selectedImage!);
+          
+          if (uploadResult['success'] == true) {
+            avatarUrl = uploadResult['url'] ?? _avatarUrlController.text;
+            _avatarUrlController.text = avatarUrl;
+          }
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error uploading profile photo: $e'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+
       final profile = UserProfile(
         userId: userId,
         name: _nameController.text,
@@ -102,7 +133,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         gender: _genderController.text,
         age: _ageController.text,
         address: _addressController.text,
-        avatarUrl: _avatarUrlController.text,
+        avatarUrl: avatarUrl,
         diseases: [], // TODO: Add disease management
         livingSituation: [], // TODO: Add living situation management
         interests: [], // Provide empty array instead of null
@@ -205,10 +236,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                         children: [
                           CircleAvatar(
                             radius: 50,
-                            backgroundImage: _avatarUrlController.text.isNotEmpty
-                                ? NetworkImage(_avatarUrlController.text)
-                                : null,
-                            child: _avatarUrlController.text.isEmpty
+                            backgroundImage: _buildProfileImage(),
+                            child: _buildProfileImage() == null
                                 ? const Icon(Icons.person, size: 50)
                                 : null,
                           ),
@@ -222,14 +251,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                               ),
                               child: IconButton(
                                 icon: const Icon(Icons.camera_alt, color: Colors.white),
-                                onPressed: () {
-                                  // TODO: Implement image picker
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Image picker coming soon!'),
-                                    ),
-                                  );
-                                },
+                                onPressed: _selectProfilePhoto,
                               ),
                             ),
                           ),
@@ -372,6 +394,60 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         fillColor: Colors.white,
       ),
     );
+  }
+
+  Future<void> _selectProfilePhoto() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 300,
+        maxHeight: 300,
+        imageQuality: 90,
+      );
+      
+      if (image != null) {
+        setState(() {
+          if (kIsWeb) {
+            _selectedXFile = image;
+            _currentAvatarUrl = image.path;
+          } else {
+            _selectedImage = File(image.path);
+            _currentAvatarUrl = image.path;
+          }
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error selecting photo: $e'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  ImageProvider? _buildProfileImage() {
+    if (_currentAvatarUrl == null) return null;
+    
+    // Check if it's a local file path or server/network URL
+    bool isLocalFile = (_currentAvatarUrl!.startsWith('/') && !_currentAvatarUrl!.startsWith('http')) || 
+                      _currentAvatarUrl!.contains('\\');
+    bool isBlobUrl = _currentAvatarUrl!.startsWith('blob:');
+    bool isApiUrl = _currentAvatarUrl!.startsWith('/api/');
+    
+    // For web platform, always use Image.network for blob URLs
+    if (isBlobUrl) {
+      isLocalFile = false;
+    }
+    
+    if (isLocalFile && !kIsWeb && _selectedImage != null) {
+      return FileImage(_selectedImage!);
+    } else {
+      String imageUrl = isBlobUrl ? _currentAvatarUrl! :
+                       isApiUrl ? 'http://127.0.0.1:3000$_currentAvatarUrl' : 
+                       _currentAvatarUrl!;
+      return NetworkImage(imageUrl);
+    }
   }
 }
 
