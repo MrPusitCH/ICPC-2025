@@ -106,7 +106,7 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                 children: [
                   // Name
                   Text(
-                    name,
+                    widget.name,
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -126,17 +126,17 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                       TableRow(children: [
                         const _InfoText('Gender'),
                         const _InfoText(':'),
-                        _InfoValue(gender),
+                        _InfoValue(widget.gender),
                       ]),
                       TableRow(children: [
                         const _InfoText('Age'),
                         const _InfoText(':'),
-                        _InfoValue(age),
+                        _InfoValue(widget.age),
                       ]),
                       TableRow(children: [
                         const _InfoText('Address'),
                         const _InfoText(':'),
-                        _InfoValue(address),
+                        _InfoValue(widget.address),
                       ]),
                     ],
                   ),
@@ -146,47 +146,6 @@ class _ProfileHeaderState extends State<ProfileHeader> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _InfoRow({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 60,
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Color(0xFF7A8A9A),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Color(0xFF1A1A1A),
-              fontWeight: FontWeight.w500,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
     );
   }
 
