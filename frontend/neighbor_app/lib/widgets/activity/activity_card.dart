@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:io';
 import '../../models/activity_item.dart';
 
 class ActivityCard extends StatelessWidget {
@@ -155,23 +157,20 @@ class ActivityCard extends StatelessWidget {
                     height: 80,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      image: activity.imageUrl != null
-                          ? DecorationImage(
-                              image: NetworkImage(activity.imageUrl!),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
                       color: activity.imageUrl == null 
                           ? Colors.grey.shade200 
                           : null,
                     ),
-                    child: activity.imageUrl == null
-                        ? const Icon(
+                    child: activity.imageUrl != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: _buildActivityImage(activity.imageUrl!),
+                          )
+                        : const Icon(
                             Icons.image,
                             color: Colors.grey,
                             size: 32,
-                          )
-                        : null,
+                          ),
                   ),
                   const SizedBox(width: 16),
                   
@@ -300,6 +299,50 @@ class ActivityCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildActivityImage(String imageUrl) {
+    print('Building activity image for URL: $imageUrl');
+    
+    // Check if it's a local file path or server/network URL
+    bool isLocalFile = (imageUrl.startsWith('/') && !imageUrl.startsWith('http')) || imageUrl.contains('\\');
+    bool isBlobUrl = imageUrl.startsWith('blob:');
+    bool isApiUrl = imageUrl.startsWith('/api/');
+    
+    // For web platform, always use Image.network for blob URLs
+    if (isBlobUrl) {
+      isLocalFile = false;
+    }
+    
+    // On Flutter Web, always use Image.network
+    bool isWeb = kIsWeb;
+    
+    return (isLocalFile && !isWeb)
+        ? Image.file(
+            File(imageUrl),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              print('Error loading local image: $error');
+              return const Icon(Icons.error, color: Colors.red);
+            },
+          )
+        : Image.network(
+            isApiUrl ? 'http://127.0.0.1:3000$imageUrl' : imageUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              print('Error loading network image: $error');
+              return const Icon(Icons.error, color: Colors.red);
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                color: Colors.grey.shade200,
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            },
+          );
+  }
 }
 
 class _InfoRow extends StatelessWidget {
@@ -340,5 +383,69 @@ class _InfoRow extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Widget _buildActivityImage(String imageUrl) {
+    print('Building activity image for URL: $imageUrl');
+    
+    // Check if it's a local file path or server/network URL
+    bool isLocalFile = (imageUrl.startsWith('/') && !imageUrl.startsWith('http')) || imageUrl.contains('\\');
+    bool isBlobUrl = imageUrl.startsWith('blob:');
+    bool isApiUrl = imageUrl.startsWith('/api/');
+    
+    // For web platform, always use Image.network for blob URLs
+    if (isBlobUrl) {
+      isLocalFile = false;
+    }
+    
+    // On Flutter Web, always use Image.network
+    bool isWeb = kIsWeb;
+    
+    return (isLocalFile && !isWeb)
+        ? Image.file(
+            File(imageUrl),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              print('Activity card local image load error for $imageUrl: $error');
+              return Container(
+                color: Colors.grey.shade200,
+                child: const Icon(
+                  Icons.image_not_supported,
+                  color: Colors.grey,
+                  size: 32,
+                ),
+              );
+            },
+          )
+        : Image.network(
+            isBlobUrl 
+                ? imageUrl  // Blob URL (for web)
+                : isApiUrl
+                  ? 'http://127.0.0.1:3000$imageUrl'  // API URL (database image)
+                  : imageUrl.startsWith('/') 
+                    ? 'http://127.0.0.1:3000$imageUrl'  // Server URL
+                    : imageUrl,  // External URL
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              print('Activity card network image load error for $imageUrl: $error');
+              return Container(
+                color: Colors.grey.shade200,
+                child: const Icon(
+                  Icons.image_not_supported,
+                  color: Colors.grey,
+                  size: 32,
+                ),
+              );
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                color: Colors.grey.shade200,
+                child: const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              );
+            },
+          );
   }
 }

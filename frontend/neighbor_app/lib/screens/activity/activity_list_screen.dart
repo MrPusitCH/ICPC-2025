@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 import '../../models/activity_item.dart';
 import '../../theme/app_theme.dart';
 import '../../router/app_router.dart';
@@ -308,20 +310,17 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
                   decoration: BoxDecoration(
                     color: Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(12),
-                    image: activity.imageUrl != null && activity.imageUrl!.isNotEmpty
-                        ? DecorationImage(
-                            image: NetworkImage(activity.imageUrl!),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
                   ),
-                  child: activity.imageUrl == null || activity.imageUrl!.isEmpty
-                      ? const Icon(
+                  child: activity.imageUrl != null && activity.imageUrl!.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: _buildActivityImage(activity.imageUrl!),
+                        )
+                      : const Icon(
                           Icons.sports_esports,
                           size: 40,
                           color: Colors.grey,
-                        )
-                      : null,
+                        ),
                 ),
                 
                 const SizedBox(width: AppTheme.spacing16),
@@ -636,6 +635,50 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
       ],
     );
   }
+
+  Widget _buildActivityImage(String imageUrl) {
+    print('Building activity list image for URL: $imageUrl');
+    
+    // Check if it's a local file path or server/network URL
+    bool isLocalFile = (imageUrl.startsWith('/') && !imageUrl.startsWith('http')) || imageUrl.contains('\\');
+    bool isBlobUrl = imageUrl.startsWith('blob:');
+    bool isApiUrl = imageUrl.startsWith('/api/');
+    
+    // For web platform, always use Image.network for blob URLs
+    if (isBlobUrl) {
+      isLocalFile = false;
+    }
+    
+    // On Flutter Web, always use Image.network
+    bool isWeb = kIsWeb;
+    
+    return (isLocalFile && !isWeb)
+        ? Image.file(
+            File(imageUrl),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              print('Error loading local image: $error');
+              return const Icon(Icons.error, color: Colors.red);
+            },
+          )
+        : Image.network(
+            isApiUrl ? 'http://127.0.0.1:3000$imageUrl' : imageUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              print('Error loading network image: $error');
+              return const Icon(Icons.error, color: Colors.red);
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                color: Colors.grey.shade200,
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            },
+          );
+  }
 }
 
 class _JoinedChip extends StatelessWidget {
@@ -681,6 +724,7 @@ class _JoinedChip extends StatelessWidget {
       ),
     );
   }
+
 }
 
 String _initials(String name) {

@@ -6,10 +6,11 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const activityId = parseInt(params.id);
+    const { id } = await params;
+    const activityId = parseInt(id);
 
     if (isNaN(activityId)) {
       return addCors(NextResponse.json(

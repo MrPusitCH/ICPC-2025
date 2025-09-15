@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get('authorization');
@@ -25,7 +25,8 @@ export async function POST(
 
     const userId = user.user_id;
 
-    const activityId = parseInt(params.id);
+    const { id } = await params;
+    const activityId = parseInt(id);
 
     if (isNaN(activityId)) {
       return addCors(NextResponse.json(
