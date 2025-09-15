@@ -302,7 +302,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          '${_activity!.participantText}',
+          _activity!.participantText,
           style: const TextStyle(
             fontSize: 14,
             color: Color(0xFF666666),

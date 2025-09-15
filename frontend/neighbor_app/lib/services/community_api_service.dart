@@ -5,12 +5,45 @@ library;
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/community_post.dart';
 import 'auth_service.dart';
 
 class CommunityApiService {
-  // TODO: Replace with your actual backend URL
-  static const String baseUrl = 'http://localhost:3000/api/community';
+  // Helper method to get the correct base URL for different platforms
+  static String get baseUrl {
+    const String? apiBase = String.fromEnvironment('API_BASE');
+    if (apiBase.isNotEmpty) {
+      return '$apiBase/api/community';
+    }
+    
+    // Platform-specific URLs
+    if (kIsWeb) {
+      // Web platform - use localhost with different port
+      return 'http://127.0.0.1:3000/api/community';
+    } else {
+      // Mobile platforms - use 10.0.2.2 for Android emulator, 127.0.0.1 for others
+      return 'http://10.0.2.2:3000/api/community';
+    }
+  }
+  
+  // Helper method to get the upload base URL
+  static String get uploadBaseUrl {
+    const String? apiBase = String.fromEnvironment('API_BASE');
+    if (apiBase.isNotEmpty) {
+      return apiBase;
+    }
+    
+    // Platform-specific URLs
+    if (kIsWeb) {
+      // Web platform - use localhost with different port
+      return 'http://127.0.0.1:3000';
+    } else {
+      // Mobile platforms - use 10.0.2.2 for Android emulator, 127.0.0.1 for others
+      return 'http://10.0.2.2:3000';
+    }
+  }
   
   // Helper method to get headers
   static Future<Map<String, String>> _getHeaders() async {
@@ -271,7 +304,6 @@ class CommunityApiService {
       // Fallback to mock data when API is not available
       print('Falling back to mock data for new post...');
       final now = DateTime.now();
-      final currentUserId = await AuthService.getCurrentUserId();
       final newPost = CommunityPost(
         postId: now.millisecondsSinceEpoch,
         title: title,
@@ -503,71 +535,26 @@ class CommunityApiService {
   // MEDIA UPLOAD (Mock implementation)
   // ============================================================================
 
+
   /// Upload media file to server
   static Future<Map<String, dynamic>> uploadMedia(File file) async {
     try {
-      print('Uploading media file: ${file.path}');
+      print('📤 Uploading to: $uploadBaseUrl/api/upload');
       
-      // For web platform, we need to handle blob URLs differently
-      if (file.path.startsWith('blob:')) {
-        print('Detected blob URL, using web-compatible upload');
-        return await _uploadBlobFile(file);
-      }
+      // Get authorization token
+      final token = await AuthService.getCurrentUserToken();
       
-      // Create multipart request
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('http://localhost:3000/api/upload'),
-      );
-      
-      // Don't set Content-Type header - let MultipartRequest handle it
-      // Only set Accept header
-      request.headers['Accept'] = 'application/json';
-      
-      // Add file to request with correct field name 'image'
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'image', // Changed from 'file' to 'image' to match backend
-          file.path,
-          filename: file.path.split('/').last,
-        ),
-      );
-      
-      print('Sending upload request to: ${request.url}');
-      
-      // Send request
-      final streamedResponse = await request.send().timeout(
-        const Duration(seconds: 30),
-        onTimeout: () {
-          throw Exception('Upload timeout');
-        },
-      );
-      
-      // Get response
-      final response = await http.Response.fromStream(streamedResponse);
-      
-      print('Upload response status: ${response.statusCode}');
-      print('Upload response body: ${response.body}');
-      
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        print('Upload successful: $data');
-        return {
-          'success': true,
-          'file_url': data['url'], // Changed from 'file_url' to 'url' to match backend
-          'file_name': data['fileName'],
-          'file_size': data['fileSize'],
-          'mime_type': data['mimeType'],
-        };
+      // Check if running on web platform using kIsWeb
+      if (kIsWeb) {
+        // Web platform - use different approach
+        return await _uploadMediaWeb(file, token);
       } else {
-        print('Upload failed with status: ${response.statusCode}');
-        return {
-          'success': false,
-          'error': 'Upload failed: ${response.statusCode}',
-        };
+        // Mobile platform - use MultipartFile
+        print('📤 File path: ${file.path}');
+        return await _uploadMediaMobile(file, token);
       }
     } catch (e) {
-      print('Error uploading media: $e');
+      print('📤 Upload error: $e');
       return {
         'success': false,
         'error': e.toString(),
@@ -575,74 +562,256 @@ class CommunityApiService {
     }
   }
 
-  /// Upload blob file (for web platform)
-  static Future<Map<String, dynamic>> _uploadBlobFile(File file) async {
+  /// Upload media for web platforms using XFile (web-compatible)
+  static Future<Map<String, dynamic>> uploadMediaWeb(XFile xFile) async {
     try {
-      print('Uploading blob file for web platform');
+      print('📤 Web upload to: $uploadBaseUrl/api/upload');
       
-      // For web blob URLs, we need to convert to bytes first
-      final bytes = await file.readAsBytes();
+      // Get authorization token
+      final token = await AuthService.getCurrentUserToken();
       
-      // Create multipart request
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('http://localhost:3000/api/upload'),
-      );
+      // Read file as bytes - this works on web
+      final bytes = await xFile.readAsBytes();
+      final base64String = base64Encode(bytes);
       
-      // Don't set Content-Type header - let MultipartRequest handle it
-      // Only set Accept header
-      request.headers['Accept'] = 'application/json';
+      // Get file name
+      String fileName = xFile.name;
+      if (fileName.isEmpty) {
+        fileName = 'image-${DateTime.now().millisecondsSinceEpoch}';
+      }
       
-      // Add file bytes to request
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          'image',
-          bytes,
-          filename: 'image_${DateTime.now().millisecondsSinceEpoch}.jpg',
-        ),
-      );
+      // Detect MIME type from file extension
+      String mimeType = 'image/jpeg'; // Default
+      if (fileName.contains('.')) {
+        final extension = fileName.toLowerCase().split('.').last;
+        switch (extension) {
+          case 'png':
+            mimeType = 'image/png';
+            break;
+          case 'jpg':
+          case 'jpeg':
+            mimeType = 'image/jpeg';
+            break;
+          case 'gif':
+            mimeType = 'image/gif';
+            break;
+          case 'webp':
+            mimeType = 'image/webp';
+            break;
+          case 'bmp':
+            mimeType = 'image/bmp';
+            break;
+          case 'svg':
+            mimeType = 'image/svg+xml';
+            break;
+        }
+      }
       
-      print('Sending blob upload request to: ${request.url}');
+      // Create request body
+      final requestBody = {
+        'file': base64String,
+        'filename': fileName,
+        'mimeType': mimeType,
+      };
       
-      // Send request
-      final streamedResponse = await request.send().timeout(
+      // Set headers
+      final headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+      
+      print('📤 Web upload - file size: ${bytes.length} bytes');
+      print('📤 Web upload - filename: $fileName');
+      print('📤 Web upload - mime type: $mimeType');
+      
+      // Send POST request
+      final response = await http.post(
+        Uri.parse('$uploadBaseUrl/api/upload'),
+        headers: headers,
+        body: json.encode(requestBody),
+      ).timeout(
         const Duration(seconds: 30),
         onTimeout: () {
+          print('📤 Upload timeout');
           throw Exception('Upload timeout');
         },
       );
       
-      // Get response
-      final response = await http.Response.fromStream(streamedResponse);
-      
-      print('Blob upload response status: ${response.statusCode}');
-      print('Blob upload response body: ${response.body}');
-      
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        print('Blob upload successful: $data');
-        return {
-          'success': true,
-          'file_url': data['url'],
-          'file_name': data['fileName'],
-          'file_size': data['fileSize'],
-          'mime_type': data['mimeType'],
-        };
-      } else {
-        print('Blob upload failed with status: ${response.statusCode}');
-        return {
-          'success': false,
-          'error': 'Upload failed: ${response.statusCode}',
-        };
-      }
+      return _handleUploadResponse(response);
     } catch (e) {
-      print('Error uploading blob file: $e');
+      print('📤 Web upload error: $e');
       return {
         'success': false,
         'error': e.toString(),
       };
     }
   }
+
+  /// Upload media for mobile platforms using MultipartFile
+  static Future<Map<String, dynamic>> _uploadMediaMobile(File file, String? token) async {
+    // Create multipart request to the correct upload endpoint
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$uploadBaseUrl/api/upload'),
+    );
+    
+    // Set headers including authorization
+    request.headers['Accept'] = 'application/json';
+    if (token != null) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    
+    // Add file to request with correct field name 'file'
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file', // Use 'file' to match backend and curl command
+        file.path,
+        filename: file.path.split('/').last,
+      ),
+    );
+    
+    print('📤 Request prepared with ${request.files.length} files');
+    print('📤 Headers: ${request.headers}');
+    
+    // Send request
+    final streamedResponse = await request.send().timeout(
+      const Duration(seconds: 30),
+      onTimeout: () {
+        print('📤 Upload timeout');
+        throw Exception('Upload timeout');
+      },
+    );
+    
+    // Get response
+    final response = await http.Response.fromStream(streamedResponse);
+    
+    return _handleUploadResponse(response);
+  }
+
+  /// Upload media for web platforms using base64 encoding
+  static Future<Map<String, dynamic>> _uploadMediaWeb(File file, String? token) async {
+    try {
+      // Read file as bytes - this should work on web
+      final bytes = await file.readAsBytes();
+      final base64String = base64Encode(bytes);
+      
+      // Get file name - handle web file paths differently
+      String fileName = 'uploaded-image';
+      try {
+        // On web, file.path might be a blob URL or different format
+        if (file.path.contains('/')) {
+          fileName = file.path.split('/').last;
+        } else if (file.path.contains('\\')) {
+          fileName = file.path.split('\\').last;
+        } else {
+          fileName = 'image-${DateTime.now().millisecondsSinceEpoch}';
+        }
+      } catch (e) {
+        print('📤 Could not extract filename, using default: $e');
+        fileName = 'image-${DateTime.now().millisecondsSinceEpoch}';
+      }
+      
+      // Detect MIME type from file extension
+      String mimeType = 'image/jpeg'; // Default
+      if (fileName.contains('.')) {
+        final extension = fileName.toLowerCase().split('.').last;
+        switch (extension) {
+          case 'png':
+            mimeType = 'image/png';
+            break;
+          case 'jpg':
+          case 'jpeg':
+            mimeType = 'image/jpeg';
+            break;
+          case 'gif':
+            mimeType = 'image/gif';
+            break;
+          case 'webp':
+            mimeType = 'image/webp';
+            break;
+          case 'bmp':
+            mimeType = 'image/bmp';
+            break;
+          case 'svg':
+            mimeType = 'image/svg+xml';
+            break;
+        }
+      }
+      
+      // Create request body
+      final requestBody = {
+        'file': base64String,
+        'filename': fileName,
+        'mimeType': mimeType,
+      };
+      
+      // Set headers
+      final headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+      
+      print('📤 Web upload - file size: ${bytes.length} bytes');
+      print('📤 Web upload - filename: $fileName');
+      print('📤 Web upload - mime type: $mimeType');
+      
+      // Send POST request
+      final response = await http.post(
+        Uri.parse('$uploadBaseUrl/api/upload'),
+        headers: headers,
+        body: json.encode(requestBody),
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          print('📤 Upload timeout');
+          throw Exception('Upload timeout');
+        },
+      );
+      
+      return _handleUploadResponse(response);
+    } catch (e) {
+      print('📤 Web upload error: $e');
+      return {
+        'success': false,
+        'error': e.toString(),
+      };
+    }
+  }
+
+  /// Handle upload response
+  static Map<String, dynamic> _handleUploadResponse(http.Response response) {
+    print('📤 Response status: ${response.statusCode}');
+    print('📤 Response body: ${response.body}');
+    
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      print('📤 Upload successful: $data');
+      
+      return {
+        'success': true,
+        'image_id': data['id'], // Return image ID for database relation
+        'file_url': '/api/image/${data['id']}', // Construct URL from image ID to match backend route
+        'file_name': data['name'],
+        'file_size': data['fileSize'] ?? 0,
+        'mime_type': data['mime'],
+      };
+    } else {
+      print('📤 Upload failed with status: ${response.statusCode}');
+      return {
+        'success': false,
+        'error': 'Upload failed: ${response.statusCode} - ${response.body}',
+      };
+    }
+  }
+
 
   // ============================================================================
   // DELETE API

@@ -2,12 +2,16 @@
 /// Form for creating new community activities
 library;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../theme/app_theme.dart';
 import '../../router/app_router.dart';
 import '../../widgets/common/location_search_widget.dart';
 import '../../widgets/common/location_map_widget.dart';
 import '../../services/activity_api_service.dart';
+import '../../services/community_api_service.dart';
 
 class ActivityCreateScreen extends StatefulWidget {
   const ActivityCreateScreen({super.key});
@@ -27,9 +31,12 @@ class _ActivityCreateScreenState extends State<ActivityCreateScreen> {
 
   String? _selectedImagePath;
   String? _selectedImageName;
+  File? _selectedImage;
+  XFile? _selectedXFile; // For web compatibility
   String? _selectedLocation;
   LatLng? _selectedLatLng;
   bool _isSubmitting = false;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
@@ -315,7 +322,9 @@ class _ActivityCreateScreenState extends State<ActivityCreateScreen> {
                     borderRadius: BorderRadius.circular(8),
                     image: _selectedImagePath != null
                         ? DecorationImage(
-                            image: NetworkImage(_selectedImagePath!),
+                            image: kIsWeb 
+                              ? NetworkImage(_selectedXFile?.path ?? _selectedImagePath!)
+                              : FileImage(_selectedImage!),
                             fit: BoxFit.cover,
                           )
                         : null,
@@ -400,25 +409,54 @@ class _ActivityCreateScreenState extends State<ActivityCreateScreen> {
     }
   }
 
-  void _selectPhoto() {
-    // Simulate photo selection
-    setState(() {
-      _selectedImagePath = 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&h=200&fit=crop';
-      _selectedImageName = 'chess-board-activity.png';
-    });
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Photo selected successfully'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+  Future<void> _selectPhoto() async {
+    try {
+      print('🖼️ Starting image picker for activity...');
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      print('🖼️ Image picker result: ${image?.path}');
+      
+      if (image != null) {
+        print('🖼️ Image selected: ${image.path}');
+        print('🖼️ Image name: ${image.name}');
+        print('🖼️ Image size: ${await image.length()} bytes');
+        
+        setState(() {
+          _selectedXFile = image;
+          if (!kIsWeb) {
+            _selectedImage = File(image.path);
+          }
+          _selectedImagePath = image.path;
+          _selectedImageName = image.name;
+        });
+        
+        print('🖼️ _selectedXFile set to: ${_selectedXFile?.path}');
+        if (!kIsWeb) {
+          print('🖼️ _selectedImage set to: ${_selectedImage?.path}');
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Photo selected successfully'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else {
+        print('🖼️ No image selected');
+      }
+    } catch (e) {
+      print('❌ Image picker error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to pick image: $e')),
+      );
+    }
   }
 
   void _deletePhoto() {
     setState(() {
       _selectedImagePath = null;
       _selectedImageName = null;
+      _selectedImage = null;
+      _selectedXFile = null;
     });
   }
 
@@ -483,6 +521,50 @@ class _ActivityCreateScreenState extends State<ActivityCreateScreen> {
       });
 
       try {
+        // Handle image upload if image is selected
+        String? uploadedImageUrl;
+        String? uploadedImageName;
+        
+        if ((kIsWeb && _selectedXFile != null) || (!kIsWeb && _selectedImage != null)) {
+          try {
+            print('🖼️ Starting image upload for activity...');
+            Map<String, dynamic> uploadResult;
+            
+            // Use web-compatible upload if on web platform
+            if (kIsWeb) {
+              uploadResult = await CommunityApiService.uploadMediaWeb(_selectedXFile!);
+            } else {
+              uploadResult = await CommunityApiService.uploadMedia(_selectedImage!);
+            }
+            
+            print('🖼️ Upload result: $uploadResult');
+            
+            if (uploadResult['success'] == true) {
+              uploadedImageUrl = uploadResult['file_url'];
+              uploadedImageName = uploadResult['file_name'];
+              print('🖼️ Image uploaded successfully: $uploadedImageUrl');
+            } else {
+              print('🖼️ Upload failed: ${uploadResult['error']}');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Image upload failed: ${uploadResult['error']}'),
+                  backgroundColor: Colors.orange,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          } catch (uploadError) {
+            print('🖼️ Upload error: $uploadError');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error uploading image: $uploadError'),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        }
+
         await ActivityApiService.createActivity(
           title: _titleController.text.trim(),
           description: _messageController.text.trim(),
@@ -493,8 +575,8 @@ class _ActivityCreateScreenState extends State<ActivityCreateScreen> {
           location: _selectedLocation,
           latitude: _selectedLatLng?.latitude,
           longitude: _selectedLatLng?.longitude,
-          imageUrl: _selectedImagePath,
-          imageName: _selectedImageName,
+          imageUrl: uploadedImageUrl ?? _selectedImagePath,
+          imageName: uploadedImageName ?? _selectedImageName,
         );
 
         if (mounted) {

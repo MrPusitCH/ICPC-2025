@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../widgets/profile/profile_header.dart';
-import '../../widgets/profile/profile_section_card.dart';
 import '../../services/profile_service.dart';
 import '../../services/api_service.dart';
 import '../../services/auth_service.dart';

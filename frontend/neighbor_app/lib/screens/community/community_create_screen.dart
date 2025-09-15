@@ -2,10 +2,12 @@
 /// Form for creating new community posts
 library;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../router/app_router.dart';
 import '../../services/community_api_service.dart';
+import '../../services/auth_service.dart';
 
 class CommunityCreateScreen extends StatefulWidget {
   const CommunityCreateScreen({super.key});
@@ -18,6 +20,7 @@ class _CommunityCreateScreenState extends State<CommunityCreateScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _messageController = TextEditingController();
   File? _selectedImage;
+  XFile? _selectedXFile; // For web compatibility
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -29,16 +32,33 @@ class _CommunityCreateScreenState extends State<CommunityCreateScreen> {
 
   Future<void> _pickImage() async {
     try {
+      print('🖼️ Starting image picker...');
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      print('🖼️ Image picker result: ${image?.path}');
+      
       if (image != null) {
+        print('🖼️ Image selected: ${image.path}');
+        print('🖼️ Image name: ${image.name}');
+        print('🖼️ Image size: ${await image.length()} bytes');
+        
         setState(() {
-          _selectedImage = File(image.path);
+          _selectedXFile = image;
+          if (!kIsWeb) {
+            _selectedImage = File(image.path);
+          }
         });
+        
+        print('🖼️ _selectedXFile set to: ${_selectedXFile?.path}');
+        if (!kIsWeb) {
+          print('🖼️ _selectedImage set to: ${_selectedImage?.path}');
+        }
+      } else {
+        print('🖼️ No image selected');
       }
     } catch (e) {
-      // Handle error
+      print('❌ Image picker error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to pick image')),
+        SnackBar(content: Text('Failed to pick image: $e')),
       );
     }
   }
@@ -46,6 +66,7 @@ class _CommunityCreateScreenState extends State<CommunityCreateScreen> {
   void _removeImage() {
     setState(() {
       _selectedImage = null;
+      _selectedXFile = null;
     });
   }
 
@@ -69,25 +90,69 @@ class _CommunityCreateScreenState extends State<CommunityCreateScreen> {
     try {
       // Prepare media data
       List<Map<String, dynamic>>? mediaData;
-      if (_selectedImage != null) {
-        // Upload media first (mock implementation)
-        final uploadResult = await CommunityApiService.uploadMedia(_selectedImage!);
-        if (uploadResult['success']) {
-          mediaData = [{
-            'file_url': uploadResult['file_url'],
-            'file_type': 'image',
-            'file_name': uploadResult['file_name'],
-            'file_size': uploadResult['file_size'],
-            'mime_type': uploadResult['mime_type'],
-          }];
+      if ((kIsWeb && _selectedXFile != null) || (!kIsWeb && _selectedImage != null)) {
+        try {
+          print('🖼️ Starting image upload...');
+          Map<String, dynamic> uploadResult;
+          
+          // Use web-compatible upload if on web platform
+          if (kIsWeb) {
+            uploadResult = await CommunityApiService.uploadMediaWeb(_selectedXFile!);
+          } else {
+            uploadResult = await CommunityApiService.uploadMedia(_selectedImage!);
+          }
+          
+          print('🖼️ Upload result: $uploadResult');
+          
+          if (uploadResult['success'] == true) {
+            mediaData = [{
+              'image_id': uploadResult['image_id'],
+              'file_url': uploadResult['file_url'],
+              'file_type': 'image',
+              'file_name': uploadResult['file_name'],
+              'file_size': uploadResult['file_size'],
+              'mime_type': uploadResult['mime_type'],
+            }];
+            print('🖼️ Media data prepared: $mediaData');
+          } else {
+            print('🖼️ Upload failed: ${uploadResult['error']}');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Image upload failed: ${uploadResult['error']}'),
+                backgroundColor: Colors.orange,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        } catch (uploadError) {
+          print('🖼️ Upload error: $uploadError');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error uploading image: $uploadError'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
+            ),
+          );
         }
+      } else {
+        print('🖼️ No image selected');
+      }
+
+      // Get current user ID
+      final currentUserId = await AuthService.getCurrentUserId();
+      if (currentUserId == null) {
+        Navigator.of(context).pop(); // Hide loading indicator
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please log in to create a post')),
+        );
+        return;
       }
 
       // Create post
       final result = await CommunityApiService.createPost(
         title: _titleController.text.trim(),
         content: _messageController.text.trim(),
-        authorId: 1, // TODO: Get from user session
+        authorId: currentUserId,
         media: mediaData,
       );
 
@@ -221,7 +286,7 @@ class _CommunityCreateScreenState extends State<CommunityCreateScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
                 ),
-                if (_selectedImage != null) ...[
+                if ((kIsWeb && _selectedXFile != null) || (!kIsWeb && _selectedImage != null)) ...[
                   const SizedBox(width: 12),
                   Container(
                     width: 40,
@@ -229,7 +294,9 @@ class _CommunityCreateScreenState extends State<CommunityCreateScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
                       image: DecorationImage(
-                        image: FileImage(_selectedImage!),
+                        image: kIsWeb 
+                          ? NetworkImage(_selectedXFile!.path)
+                          : FileImage(_selectedImage!),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -237,7 +304,9 @@ class _CommunityCreateScreenState extends State<CommunityCreateScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      _selectedImage!.path.split('/').last,
+                      kIsWeb 
+                        ? _selectedXFile!.name
+                        : _selectedImage!.path.split('/').last,
                       style: TextStyle(
                         color: Colors.grey.shade600,
                         fontSize: 12,

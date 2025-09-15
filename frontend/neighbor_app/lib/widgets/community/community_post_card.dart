@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../../models/community_post.dart';
 
 class CommunityPostCard extends StatelessWidget {
@@ -217,11 +218,15 @@ class CommunityPostCard extends StatelessWidget {
     // Check if it's a local file path or server/network URL
     bool isLocalFile = (imageUrl.startsWith('/') && !imageUrl.startsWith('http')) || imageUrl.contains('\\');
     bool isBlobUrl = imageUrl.startsWith('blob:');
+    bool isApiUrl = imageUrl.startsWith('/api/');
     
     // For web platform, always use Image.network for blob URLs
     if (isBlobUrl) {
       isLocalFile = false;
     }
+    
+    // On Flutter Web, always use Image.network
+    bool isWeb = kIsWeb;
     
     return Container(
       height: 200,
@@ -231,7 +236,7 @@ class CommunityPostCard extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: isLocalFile 
+        child: (isLocalFile && !isWeb)
           ? Image.file(
               File(imageUrl),
               fit: BoxFit.cover,
@@ -250,9 +255,11 @@ class CommunityPostCard extends StatelessWidget {
           : Image.network(
               isBlobUrl 
                 ? imageUrl  // Blob URL (for web)
-                : imageUrl.startsWith('/') 
-                  ? 'http://localhost:3000$imageUrl'  // Server URL
-                  : imageUrl,  // External URL
+                : isApiUrl
+                  ? 'http://localhost:3000$imageUrl'  // API URL (database image)
+                  : imageUrl.startsWith('/') 
+                    ? 'http://localhost:3000$imageUrl'  // Server URL
+                    : imageUrl,  // External URL
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 print('Post card network image load error for $imageUrl: $error');

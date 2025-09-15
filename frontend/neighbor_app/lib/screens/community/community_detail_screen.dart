@@ -3,6 +3,7 @@
 library;
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../../theme/app_theme.dart';
 import '../../router/app_router.dart';
 import '../../models/community_post.dart';
@@ -860,6 +861,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
     // Check if it's a local file path or server/network URL
     bool isLocalFile = (imageUrl.startsWith('/') && !imageUrl.startsWith('http')) || imageUrl.contains('\\');
     bool isBlobUrl = imageUrl.startsWith('blob:');
+    bool isApiUrl = imageUrl.startsWith('/api/');
+    bool isWeb = kIsWeb;
     
     // For web platform, always use Image.network for blob URLs
     if (isBlobUrl) {
@@ -874,7 +877,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: isLocalFile 
+        child: (isLocalFile && !isWeb)
           ? Image.file(
               File(imageUrl),
               fit: BoxFit.cover,
@@ -893,9 +896,11 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
           : Image.network(
               isBlobUrl 
                 ? imageUrl  // Blob URL (for web)
-                : imageUrl.startsWith('/') 
-                  ? 'http://localhost:3000$imageUrl'  // Server URL
-                  : imageUrl,  // External URL
+                : isApiUrl
+                  ? 'http://localhost:3000$imageUrl'  // API URL (database image)
+                  : imageUrl.startsWith('/') 
+                    ? 'http://localhost:3000$imageUrl'  // Server URL
+                    : imageUrl,  // External URL
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 print('Detail screen network image load error for $imageUrl: $error');

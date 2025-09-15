@@ -179,7 +179,8 @@ model CommunityPost {
 model PostMedia {
   media_id    Int           @id @default(autoincrement())
   post_id     Int
-  file_url    String
+  image_id    Int?          // Reference to Image table
+  file_url    String?       // Keep for backward compatibility, but prefer image_id
   file_type   String        // 'image', 'video', 'document'
   file_name   String
   file_size   Int?          // in bytes
@@ -188,6 +189,7 @@ model PostMedia {
   
   // Relations
   post        CommunityPost @relation(fields: [post_id], references: [post_id], onDelete: Cascade)
+  image       Image?        @relation(fields: [image_id], references: [id], onDelete: SetNull)
   
   @@map("post_media")
 }
@@ -289,4 +291,18 @@ model ActivityJoin {
 
   @@unique([activity_id, user_id])
   @@map("activity_joins")
+}
+
+// Image storage model for BLOB storage in MySQL
+model Image {
+  id         Int      @id @default(autoincrement())
+  name       String?  // Original filename (nullable)
+  mime       String   // MIME type (e.g., 'image/jpeg', 'image/png')
+  bytes      Bytes    @db.LongBlob // Image data as BLOB
+  created_at DateTime @default(now())
+  
+  // Relations
+  postMedia  PostMedia[]
+
+  @@map("images")
 }

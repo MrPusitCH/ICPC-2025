@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { addCors } from '@/config/cors';
-
-const prisma = new PrismaClient();
 
 // Handle CORS preflight requests
 export async function OPTIONS(request: NextRequest) {
@@ -57,3 +55,4 @@ export async function GET(request: NextRequest) {
     ));
   }
 }
+

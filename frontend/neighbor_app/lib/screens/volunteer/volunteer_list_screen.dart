@@ -20,8 +20,8 @@ class _VolunteerListScreenState extends State<VolunteerListScreen> {
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
-  Map<int, bool> _supportStatus = {}; // Track support status for each post
-  Map<int, int> _supportCounts = {}; // Track support counts for each post
+  final Map<int, bool> _supportStatus = {}; // Track support status for each post
+  final Map<int, int> _supportCounts = {}; // Track support counts for each post
 
   @override
   void initState() {
