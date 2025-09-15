@@ -84,12 +84,19 @@ class _VolunteerListScreenState extends State<VolunteerListScreen> {
   }
 
   Future<void> _handleSupport(Volunteer volunteer) async {
+    final postId = int.tryParse(volunteer.id);
+    if (postId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid post ID'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+    
     try {
-      final postId = int.tryParse(volunteer.id);
-      if (postId == null) {
-        throw Exception('Invalid post ID');
-      }
-      
       final isCurrentlySupported = _supportStatus[postId] ?? false;
       
       if (isCurrentlySupported) {
@@ -126,10 +133,29 @@ class _VolunteerListScreenState extends State<VolunteerListScreen> {
         );
       }
     } catch (e) {
+      String errorMessage = 'Error supporting volunteer request';
+      if (e.toString().contains('already supported')) {
+        errorMessage = 'You have already supported this request';
+        // Update UI to reflect that it's already supported
+        if (mounted) {
+          setState(() {
+            _supportStatus[postId] = true;
+          });
+        }
+      } else if (e.toString().contains('not supported')) {
+        errorMessage = 'You have not supported this request yet';
+        // Update UI to reflect that it's not supported
+        if (mounted) {
+          setState(() {
+            _supportStatus[postId] = false;
+          });
+        }
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          content: Text(errorMessage),
+          backgroundColor: Colors.orange,
           duration: const Duration(seconds: 3),
         ),
       );

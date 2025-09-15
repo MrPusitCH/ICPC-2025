@@ -41,38 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       
       var profile = await ProfileService.getUserProfile(userId);
 
-      // Fallback: if API has no health/living data, use mock to populate UI
-      if ((profile.diseases.isEmpty) && (profile.livingSituation.isEmpty)) {
-        final mock = await ApiService.getUserProfile();
-        profile = UserProfile(
-          userId: profile.userId,
-          name: profile.name.isNotEmpty ? profile.name : mock.name,
-          nickname: profile.nickname ?? mock.nickname,
-          gender: profile.gender.isNotEmpty ? profile.gender : mock.gender,
-          age: profile.age.isNotEmpty ? profile.age : mock.age,
-          address: profile.address.isNotEmpty ? profile.address : mock.address,
-          avatarUrl: profile.avatarUrl.isNotEmpty ? profile.avatarUrl : mock.avatarUrl,
-          diseases: mock.diseases,
-          livingSituation: mock.livingSituation,
-          interests: profile.interests ?? mock.interests,
-          emergencyContacts: profile.emergencyContacts ?? mock.emergencyContacts,
-        );
-      }
-
-      // Force age to 60 as requested
-      profile = UserProfile(
-        userId: profile.userId,
-        name: profile.name,
-        nickname: profile.nickname,
-        gender: profile.gender,
-        age: '60',
-        address: profile.address,
-        avatarUrl: profile.avatarUrl,
-        diseases: profile.diseases,
-        livingSituation: profile.livingSituation,
-        interests: profile.interests,
-        emergencyContacts: profile.emergencyContacts,
-      );
+      // Use real profile data from API
 
       setState(() {
         _userProfile = profile;

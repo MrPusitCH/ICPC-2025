@@ -96,10 +96,29 @@ class _VolunteerDetailScreenState extends State<VolunteerDetailScreen> {
         );
       }
     } catch (e) {
+      String errorMessage = 'Error supporting volunteer request';
+      if (e.toString().contains('already supported')) {
+        errorMessage = 'You have already supported this request';
+        // Update UI to reflect that it's already supported
+        if (mounted) {
+          setState(() {
+            _supported = true;
+          });
+        }
+      } else if (e.toString().contains('not supported')) {
+        errorMessage = 'You have not supported this request yet';
+        // Update UI to reflect that it's not supported
+        if (mounted) {
+          setState(() {
+            _supported = false;
+          });
+        }
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          content: Text(errorMessage),
+          backgroundColor: Colors.orange,
           duration: const Duration(seconds: 3),
         ),
       );
