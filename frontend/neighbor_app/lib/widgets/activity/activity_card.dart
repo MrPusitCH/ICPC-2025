@@ -16,16 +16,16 @@ class ActivityCard extends StatelessWidget {
     this.onJoinTap,
   });
 
-  Future<void> _openInGoogleMaps(String query) async {
-    // Prefer universal Maps URL which opens the app on Android, and browser/app on iOS
-    final uri = Uri.parse(
-      'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}',
-    );
+  Future<void> _openInMaps(String query) async {
+    // Use OpenStreetMap Nominatim for geocoding and then open in maps
+    final encodedQuery = Uri.encodeComponent(query);
+    final osmUri = Uri.parse('https://www.openstreetmap.org/search?query=$encodedQuery');
+    
     try {
-      final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      final ok = await launchUrl(osmUri, mode: LaunchMode.externalApplication);
       if (!ok) {
         // Fallback to geo: scheme (mostly Android)
-        final geo = Uri.parse('geo:0,0?q=${Uri.encodeComponent(query)}');
+        final geo = Uri.parse('geo:0,0?q=$encodedQuery');
         await launchUrl(geo, mode: LaunchMode.externalApplication);
       }
     } catch (_) {
@@ -185,11 +185,11 @@ class ActivityCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         _InfoRow(label: 'Place:', value: activity.place),
                         const SizedBox(height: 8),
-                        // Tap to open Google Maps
+                        // Tap to open Maps
                         Align(
                           alignment: Alignment.centerLeft,
                           child: InkWell(
-                            onTap: () => _openInGoogleMaps(activity.place),
+                            onTap: () => _openInMaps(activity.place),
                             borderRadius: BorderRadius.circular(8),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,

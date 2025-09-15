@@ -153,7 +153,7 @@ class FallbackMapWidget extends StatelessWidget {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'Google Maps API key required',
+                    'OpenStreetMap',
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 12,
