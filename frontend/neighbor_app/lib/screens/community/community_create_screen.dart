@@ -8,6 +8,7 @@ import 'dart:io';
 import '../../router/app_router.dart';
 import '../../services/community_api_service.dart';
 import '../../services/auth_service.dart';
+import '../../theme/app_theme.dart';
 
 class CommunityCreateScreen extends StatefulWidget {
   const CommunityCreateScreen({super.key});
@@ -182,9 +183,9 @@ class _CommunityCreateScreenState extends State<CommunityCreateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.lightBackground,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF35C2C8), // Teal color
+        backgroundColor: AppTheme.primaryBlue, // Using theme color for consistency
         elevation: 0,
         toolbarHeight: 64,
         leading: IconButton(
@@ -240,7 +241,7 @@ class _CommunityCreateScreenState extends State<CommunityCreateScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFF35C2C8)),
+                  borderSide: const BorderSide(color: AppTheme.primaryBlue),
                 ),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               ),
@@ -264,7 +265,7 @@ class _CommunityCreateScreenState extends State<CommunityCreateScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFF35C2C8)),
+                  borderSide: const BorderSide(color: AppTheme.primaryBlue),
                 ),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               ),
@@ -345,7 +346,7 @@ class _CommunityCreateScreenState extends State<CommunityCreateScreen> {
               child: ElevatedButton(
                 onPressed: _sendPost,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF35C2C8),
+                  backgroundColor: AppTheme.primaryBlue,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),

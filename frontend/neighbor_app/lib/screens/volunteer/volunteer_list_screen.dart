@@ -337,25 +337,13 @@ class _VolunteerListScreenState extends State<VolunteerListScreen> {
                   ),
                   const SizedBox(width: AppTheme.spacing12),
                   
-                  // Name and time
+                  // Name
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          volunteer.requesterName,
-                          style: AppTheme.titleSmall.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          volunteer.timeAgo,
-                          style: AppTheme.bodySmall.copyWith(
-                            color: AppTheme.greyText,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      volunteer.requesterName,
+                      style: AppTheme.titleSmall.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   
@@ -432,9 +420,7 @@ class _VolunteerListScreenState extends State<VolunteerListScreen> {
                       children: [
                         _buildDetailRow('Date', volunteer.dateTime),
                         const SizedBox(height: AppTheme.spacing8),
-                        _buildDetailRow('Time', volunteer.dateTime),
-                        const SizedBox(height: AppTheme.spacing8),
-                        _buildDetailRow('Rewards', volunteer.reward),
+                        _buildRewardRow('Rewards', volunteer.reward),
                       ],
                     ),
                   ),
@@ -532,6 +518,42 @@ class _VolunteerListScreenState extends State<VolunteerListScreen> {
             style: AppTheme.bodySmall.copyWith(
               color: AppTheme.darkText,
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRewardRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 60,
+          child: Text(
+            '$label :',
+            style: AppTheme.bodySmall.copyWith(
+              color: AppTheme.greyText,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Row(
+            children: [
+              const Text(
+                '⭐',
+                style: TextStyle(fontSize: 14),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '$value Points',
+                style: AppTheme.bodySmall.copyWith(
+                  color: AppTheme.darkText,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
       ],

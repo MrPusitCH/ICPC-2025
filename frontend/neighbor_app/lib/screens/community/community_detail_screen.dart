@@ -526,17 +526,23 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen> {
       appBar: AppBar(
         title: const Text(
           'Post Detail',
-          style: AppTheme.titleMedium,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
+        backgroundColor: AppTheme.primaryBlue, // Using theme color for consistency
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => AppRouter.pop(context),
         ),
         actions: [
           // Show delete button if current user is the post author OR if user is admin
           if (_post != null && (_post!.authorId == _currentUserId || _isAdmin))
             IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              icon: const Icon(Icons.delete_outline, color: Colors.white),
               onPressed: _deletePost,
               tooltip: _isAdmin ? 'Delete Post (Admin)' : 'Delete Post',
             ),
